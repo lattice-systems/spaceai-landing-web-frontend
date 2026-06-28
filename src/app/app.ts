@@ -1,20 +1,13 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { provideIcons, NgIcon } from '@ng-icons/core';
-import { lucideArrowRight } from '@ng-icons/lucide';
-import { HlmButtonImports } from '@spartan-ng/helm/button';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HlmButtonImports, NgIcon],
-  providers: [provideIcons({ lucideArrowRight })],
-  templateUrl: './app.html',
-  styleUrl: './app.css',
+  imports: [RouterOutlet],
+  template: `<router-outlet />`,
 })
 export class App {
-  protected readonly title = signal('SpaceIA');
-
   readonly #doc = inject(DOCUMENT);
 
   constructor() {
