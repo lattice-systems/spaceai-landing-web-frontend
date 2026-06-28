@@ -9,8 +9,8 @@ import {
   viewChildren,
 } from '@angular/core';
 
-interface Stat   { raw: string; label: string; }
-interface Feature { num: string; title: string; desc: string; }
+interface Stat    { raw: string; label: string; }
+interface Feature { tag: string; title: string; desc: string; }
 
 const STATS: Stat[] = [
   { raw: '70%',  label: 'Reducción en tiempos de espera administrativa' },
@@ -19,26 +19,24 @@ const STATS: Stat[] = [
   { raw: '100%', label: 'Control de accesos digitalizado' },
 ];
 
+// Tags encode the domain, not a sequence — 01/02/03 would lie about the relationship
 const FEATURES: Feature[] = [
   {
-    num: '01',
+    tag: 'PROCESOS',
     title: 'Automatiza los procesos críticos',
     desc: 'Accesos, orientación y soporte se gestionan sin intervención manual. Tu equipo se enfoca en lo que importa.',
   },
   {
-    num: '02',
+    tag: 'COMUNIDAD',
     title: 'Conecta a toda la comunidad',
     desc: 'Estudiantes, docentes y personal con información institucional en tiempo real desde cualquier punto del campus.',
   },
   {
-    num: '03',
+    tag: 'CONTROL',
     title: 'Un ecosistema, control total',
     desc: 'Seguridad, métricas y operaciones en un solo panel. Visibilidad completa sin añadir complejidad.',
   },
 ];
-
-// 21 thresholds: 0, 0.05, 0.10, ..., 1.0
-const THRESHOLDS = Array.from({ length: 21 }, (_, i) => i / 20);
 
 @Component({
   selector: 'app-beneficios',
@@ -53,16 +51,14 @@ const THRESHOLDS = Array.from({ length: 21 }, (_, i) => i / 20);
     }
     .header-anim.visible { opacity: 1; transform: none; }
 
-    /* Stats: solo opacity (sin translateY — ya no hay overflow-hidden) */
     .stat-cell {
       opacity: 0;
       transition: opacity 600ms cubic-bezier(0.23,1,0.32,1);
     }
     .stat-cell.visible { opacity: 1; }
 
-    /* Features */
     .feat-anim {
-      opacity: 0; transform: translateY(28px);
+      opacity: 0; transform: translateY(24px);
       transition: opacity 700ms cubic-bezier(0.23,1,0.32,1),
                   transform 700ms cubic-bezier(0.23,1,0.32,1);
     }
@@ -76,7 +72,6 @@ const THRESHOLDS = Array.from({ length: 21 }, (_, i) => i / 20);
     <section class="bg-gradient-to-b from-transparent via-muted/40 to-transparent py-14 sm:py-20">
       <div class="mx-auto max-w-7xl px-6 lg:px-16">
 
-        <!-- Header -->
         <div
           #header
           class="header-anim mx-auto mb-12 max-w-2xl text-center"
@@ -90,10 +85,7 @@ const THRESHOLDS = Array.from({ length: 21 }, (_, i) => i / 20);
           </p>
         </div>
 
-        <!--
-          Stats: diseño abierto sin "pila" — borde superior con acento primario,
-          sin card/box. Estilo Linear/Vercel.
-        -->
+        <!-- Stats: open grid, no card/box -->
         <div class="mb-14 grid grid-cols-2 gap-x-8 gap-y-8 sm:grid-cols-4">
           @for (s of stats; track s.raw; let i = $index) {
             <div
@@ -110,20 +102,18 @@ const THRESHOLDS = Array.from({ length: 21 }, (_, i) => i / 20);
           }
         </div>
 
-        <!-- Numbered features: números oscurecen progresivamente al scrollear -->
+        <!--
+          Features: left-border accent encodes "capability domain", not sequence.
+          No numbers — the three items are parallel, not ordered steps.
+        -->
         <div class="grid gap-8 sm:grid-cols-3">
-          @for (f of features; track f.num; let i = $index) {
-            <div #featEl class="feat-anim">
-              <!--
-                #featNum: color fijo text-foreground, opacity controlada por JS
-                según intersectionRatio (0.04 invisible → 0.30 al entrar completo).
-              -->
-              <span
-                #featNum
-                class="mb-3 block select-none text-7xl font-bold leading-none text-foreground sm:text-8xl"
-                style="opacity: 0.04"
-              >
-                {{ f.num }}
+          @for (f of features; track f.tag; let i = $index) {
+            <div
+              #featEl
+              class="feat-anim border-l-2 border-primary/25 pl-5"
+            >
+              <span class="mb-3 block text-xs font-semibold uppercase tracking-widest text-primary/70">
+                {{ f.tag }}
               </span>
               <h3 class="mb-2 text-lg font-bold tracking-tight text-foreground">{{ f.title }}</h3>
               <p class="text-sm leading-relaxed text-muted-foreground">{{ f.desc }}</p>
@@ -145,14 +135,12 @@ export class Beneficios {
   private readonly statCells = viewChildren<ElementRef>('statCell');
   private readonly statNums  = viewChildren<ElementRef>('statNum');
   private readonly featEls   = viewChildren<ElementRef>('featEl');
-  private readonly featNums  = viewChildren<ElementRef>('featNum');
 
   constructor() {
     afterNextRender(() => {
       const h = this.headerRef()[0];
       if (h) observe1(h.nativeElement, () => this.headerVisible.set(true));
 
-      // Stats — DOM puro para evitar re-render que borra countUp
       this.statCells().forEach((ref, i) => {
         const cell  = ref.nativeElement as HTMLElement;
         const numEl = this.statNums()[i]?.nativeElement as HTMLElement;
@@ -164,23 +152,9 @@ export class Beneficios {
         });
       });
 
-      // Features — DOM puro + darkening progresivo via thresholds
       this.featEls().forEach((ref, i) => {
-        const el    = ref.nativeElement as HTMLElement;
-        const numEl = this.featNums()[i]?.nativeElement as HTMLElement;
-
-        // Visibility (fade-in + slide)
+        const el = ref.nativeElement as HTMLElement;
         observe1(el, () => setTimeout(() => el.classList.add('visible'), i * 110));
-
-        // Darkening: intersectionRatio 0→1 mapea a opacity 0.04→0.30
-        if (numEl) {
-          this.zone.runOutsideAngular(() => {
-            const darkObs = new IntersectionObserver(([e]) => {
-              numEl.style.opacity = String(+(0.04 + e.intersectionRatio * 0.26).toFixed(3));
-            }, { threshold: THRESHOLDS });
-            darkObs.observe(el);
-          });
-        }
       });
     });
   }
