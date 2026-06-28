@@ -70,12 +70,11 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
           [class.visible]="headerVisible()"
         >
           <h2 class="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            ¿Listo para el
-            <span class="text-primary"> campus inteligente?</span>
+            Una demo de 30 minutos.<br class="hidden sm:block" />
+            <span class="text-primary">Tu propuesta en 48 horas.</span>
           </h2>
           <p class="mb-10 text-base leading-relaxed text-muted-foreground">
-            Agenda una sesión con nuestro equipo y recibe una propuesta personalizada
-            para tu institución, sin compromiso.
+            Sin compromiso. Adaptada a las necesidades de tu institución.
           </p>
         </div>
 
