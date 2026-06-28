@@ -8,5 +8,7 @@
         "parser": "angular"
       }
     }
-  ]
+  ],
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tailwindFunctions": ["hlm", "cva", "classes"]
 }

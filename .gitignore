@@ -42,3 +42,16 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Environment & Config
+.env
+.env.local
+.env.*.local
+
+# Build tools & package managers
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# IDE settings
+.claude/settings.local.json
