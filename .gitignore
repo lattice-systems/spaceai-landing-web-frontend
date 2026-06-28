@@ -54,4 +54,5 @@ pnpm-lock.yaml
 yarn.lock
 
 # IDE settings
+.claude/settings.json
 .claude/settings.local.json
