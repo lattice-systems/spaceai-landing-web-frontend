@@ -12,5 +12,5 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
   styleUrl: './app.css',
 })
 export class App {
-  protected readonly title = signal('spaceai-landing-web-frontend');
+  protected readonly title = signal('SpaceIA');
 }
