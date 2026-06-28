@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Hero } from './hero/hero';
 
 @Component({
   selector: 'app-home',
+  imports: [Hero],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<div class="min-h-screen"></div>`,
+  template: `<app-hero />`,
 })
 export class Home {}
