@@ -1,5 +1,14 @@
+import { NgOptimizedImage } from '@angular/common';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DOCUMENT,
+  NgZone,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -42,7 +51,14 @@ const PRODUCT_ITEMS = [
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, NgIcon, HlmNavigationMenuImports, HlmButtonImports],
+  imports: [
+    NgOptimizedImage,
+    RouterLink,
+    RouterLinkActive,
+    NgIcon,
+    HlmNavigationMenuImports,
+    HlmButtonImports,
+  ],
   providers: [
     provideIcons({ lucideMenu, lucideX, lucideSmartphone, lucideFingerprint, lucideMonitor, lucideBot }),
   ],
@@ -54,21 +70,63 @@ const PRODUCT_ITEMS = [
       transition('closed <=> open', animate('200ms ease-out')),
     ]),
   ],
-  template: `
-    <header class="fixed top-0 right-0 left-0 z-50 bg-background/80 pb-px backdrop-blur-sm after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-border after:to-transparent">
-      <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+  styles: [`
+    :host { display: contents; }
 
+    /* Bottom fade-border: visible only in bar mode */
+    .fade-border::after {
+      content: '';
+      position: absolute;
+      inset-inline: 0;
+      bottom: 0;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      transition: opacity 350ms ease;
+    }
+    .fade-border.island-mode::after {
+      opacity: 0;
+    }
+  `],
+  template: `
+    <!-- Outer shell: always fixed, adds top/side padding when island -->
+    <header
+      class="fixed inset-x-0 top-0 z-50 fade-border transition-[padding] duration-[380ms] ease-out"
+      [class.island-mode]="isIsland()"
+      [class.pt-4]="isIsland()"
+      [class.px-4]="isIsland()"
+      [class.md:px-8]="isIsland()"
+    >
+      <!-- Inner pill / bar -->
+      <div
+        class="relative mx-auto flex items-center justify-between transition-all duration-[380ms] ease-out"
+        [class]="isIsland()
+          ? 'h-12 max-w-[820px] rounded-full border border-border/60 bg-background/75 px-2   shadow-[0_4px_28px_oklch(0_0_0/0.07)] backdrop-blur-xl'
+          : 'h-16 max-w-7xl bg-background/60 px-4 backdrop-blur-sm sm:px-6'"
+      >
         <!-- Logo -->
-        <a routerLink="/" class="select-none text-xl font-bold tracking-tight text-foreground">
-          Space<span class="text-primary">IA</span>
+        <a routerLink="/" class="flex shrink-0 items-center">
+          <img
+            ngSrc="/spaceai-logo.png"
+            alt="SpaceIA"
+            width="96" height="64"
+            class="h-8 w-auto dark:hidden"
+            priority
+          />
+          <img
+            ngSrc="/spaceai-logo-dark-variant.png"
+            alt="SpaceIA"
+            width="96" height="64"
+            class="hidden h-8 w-auto dark:block"
+            priority
+          />
         </a>
 
         <!-- Desktop nav -->
         <nav hlmNavigationMenu aria-label="Navegación principal" class="hidden md:flex">
           <ul hlmNavigationMenuList>
             <li hlmNavigationMenuItem>
-              <a hlmNavigationMenuLink routerLink="/nosotros" routerLinkActive #nosotros="routerLinkActive"
-                 [active]="nosotros.isActive">
+              <a hlmNavigationMenuLink routerLink="/nosotros" routerLinkActive
+                 #nosotros="routerLinkActive" [active]="nosotros.isActive">
                 Nosotros
               </a>
             </li>
@@ -147,13 +205,16 @@ const PRODUCT_ITEMS = [
         </button>
       </div>
 
-      <!-- Mobile menu -->
+      <!-- Mobile menu — se expande debajo del pill/bar -->
       <div
         id="mobile-menu"
         [@mobileMenu]="mobileOpen() ? 'open' : 'closed'"
         class="overflow-hidden md:hidden"
       >
-        <nav class="mx-auto flex max-w-7xl flex-col gap-0.5 px-4 pb-4 sm:px-6" aria-label="Menú móvil">
+        <nav
+          class="mx-auto flex max-w-7xl flex-col gap-0.5 rounded-b-2xl bg-background/90 px-4 pb-4 backdrop-blur-xl sm:px-6"
+          aria-label="Menú móvil"
+        >
           <a
             routerLink="/nosotros"
             class="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -203,8 +264,28 @@ const PRODUCT_ITEMS = [
   `,
 })
 export class Navbar {
+  readonly #zone = inject(NgZone);
+  readonly #win = inject(DOCUMENT).defaultView!;
+  readonly #scrolled = signal(false);
+
   protected readonly productItems = PRODUCT_ITEMS;
   protected readonly mobileOpen = signal(false);
+  protected readonly isIsland = computed(() => this.#scrolled() && !this.mobileOpen());
+
+  constructor() {
+    this.#zone.runOutsideAngular(() => {
+      this.#win.addEventListener(
+        'scroll',
+        () => {
+          const next = this.#win.scrollY > 60;
+          if (next !== this.#scrolled()) {
+            this.#zone.run(() => this.#scrolled.set(next));
+          }
+        },
+        { passive: true },
+      );
+    });
+  }
 
   protected toggleMobile(): void {
     this.mobileOpen.update((v) => !v);
