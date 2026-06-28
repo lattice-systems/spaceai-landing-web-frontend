@@ -55,7 +55,7 @@ const PRODUCT_ITEMS = [
     ]),
   ],
   template: `
-    <header class="fixed top-0 right-0 left-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm">
+    <header class="fixed top-0 right-0 left-0 z-50 bg-background/80 pb-px backdrop-blur-sm after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-border after:to-transparent">
       <div class="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
 
         <!-- Logo -->
@@ -74,7 +74,7 @@ const PRODUCT_ITEMS = [
             </li>
 
             <li hlmNavigationMenuItem>
-              <button hlmNavigationMenuTrigger>SpaceIA</button>
+              <button hlmNavigationMenuTrigger>Productos</button>
               <hlm-navigation-menu-content *hlmNavigationMenuPortal>
                 <ul class="grid w-96 grid-cols-2 gap-1 p-3">
                   @for (item of productItems; track item.fragment) {
