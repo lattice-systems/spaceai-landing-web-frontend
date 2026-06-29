@@ -16,6 +16,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/public/contacto/contacto').then((m) => m.Contacto),
       },
+      {
+        path: 'cotizador',
+        loadComponent: () =>
+          import('./features/public/cotizador/cotizador').then((m) => m.Cotizador),
+      },
     ],
   },
 ];
