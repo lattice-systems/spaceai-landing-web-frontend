@@ -8,6 +8,7 @@ import {
   NgZone,
   viewChildren,
 } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -42,7 +43,7 @@ const VALORES = [
   { icon: 'lucideZap',         title: 'Innovación',              desc: 'Buscamos formas más inteligentes de resolver problemas reales del campus.' },
   { icon: 'lucideShieldCheck', title: 'Calidad',                 desc: 'Entregamos soluciones que funcionan bien desde el primer día, sin parches.' },
   { icon: 'lucideEye',         title: 'Transparencia',           desc: 'Comunicación directa con clientes y equipo. Sin sorpresas.' },
-  { icon: 'lucideUsers',       title: 'Orientación al cliente',  desc: 'Las necesidades del campus guían cada decisión de producto.' },
+  { icon: 'lucideUsers',       title: 'Orientación al cliente',  desc: 'Las necesidades reales del cliente guían cada decisión, ya sea software a medida o producto propio.' },
   { icon: 'lucideLayers',      title: 'Trabajo en equipo',       desc: 'Cada disciplina aporta — software, hardware, IA y robótica juntos.' },
   { icon: 'lucideTarget',      title: 'Compromiso',              desc: 'Cumplimos lo que prometemos. El campus confía en nosotros.' },
 ];
@@ -93,7 +94,7 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
 
 @Component({
   selector: 'app-nosotros',
-  imports: [RouterLink, HlmButtonImports, NgIcon],
+  imports: [RouterLink, HlmButtonImports, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({ lucideMapPin, lucideZap, lucideUsers, lucideLayers, lucideShieldCheck, lucideEye, lucideTarget }),
   ],
@@ -160,8 +161,8 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
         </h1>
 
         <p @fadeSlideInDelay class="max-w-xl text-lg leading-relaxed text-muted-foreground">
-          Construimos el sistema nervioso del campus universitario moderno.
-          IA, IoT y automatización al servicio de la comunidad académica.
+          Desarrollamos software a medida, automatizaciones e integraciones inteligentes.
+          SpaceIA es nuestra plataforma propia — el ecosistema tecnológico para la universidad moderna.
         </p>
       </div>
     </section>
@@ -178,8 +179,9 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
               Por qué<br /> construimos SpaceIA.
             </h2>
             <p class="mt-4 text-sm leading-relaxed text-muted-foreground">
-              Todo empezó con una observación simple: los campus mexicanos tenían tecnología de sobra,
-              pero ningún sistema que la conectara.
+              Somos una empresa de desarrollo de software. Construimos soluciones a medida y también
+              desarrollamos productos propios. SpaceIA nació de una observación simple: los campus
+              mexicanos tenían tecnología de sobra, pero ningún sistema que la conectara.
             </p>
           </div>
 
@@ -273,6 +275,12 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
     <!-- ── 6. CTA ─────────────────────────────────────────────────────────── -->
     <section class="border-y border-border bg-card py-20">
       <div #ctaSection class="sec-anim mx-auto max-w-2xl px-6 text-center">
+        <div class="mb-8 flex justify-center">
+          <img ngSrc="/lattice_systems-logo.png" alt="Lattice Systems"
+            width="600" height="600" class="h-14 w-auto dark:hidden" priority />
+          <img ngSrc="/latticesystems-logo-dark-variant.png" alt="Lattice Systems"
+            width="600" height="600" class="hidden h-14 w-auto dark:block" priority />
+        </div>
         <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-primary/70">ÚNETE</p>
         <h2 class="mb-4 text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
           ¿Quieres construir<br class="hidden sm:block" /> con nosotros?
