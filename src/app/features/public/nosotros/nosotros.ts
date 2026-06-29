@@ -150,34 +150,14 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
       ></div>
 
       <div @fadeSlideIn class="relative z-10 mx-auto max-w-3xl">
-        <!-- Logo -->
-        <div class="mb-8">
-          <img
-            ngSrc="/lattice_systems-logo.png"
-            alt="Lattice Systems"
-            width="600"
-            height="600"
-            class="h-16 w-auto dark:hidden"
-            priority
-          />
-          <img
-            ngSrc="/latticesystems-logo-dark-variant.png"
-            alt="Lattice Systems"
-            width="600"
-            height="600"
-            class="hidden h-16 w-auto dark:block"
-            priority
-          />
-        </div>
-
         <!-- Location badge -->
-        <div class="mb-5 flex items-center gap-2">
+        <div class="mb-6 flex items-center gap-2">
           <ng-icon name="lucideMapPin" size="14" class="text-muted-foreground" aria-hidden="true" />
           <span class="text-xs font-medium text-muted-foreground">León, Guanajuato, México</span>
         </div>
 
         <h1 class="mb-4 text-5xl font-extrabold leading-[1.06] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
-          Construimos el<br class="hidden sm:block" /> campus del futuro.
+          Somos Lattice<br class="hidden sm:block" /> Systems.
         </h1>
 
         <p @fadeSlideInDelay class="max-w-xl text-lg leading-relaxed text-muted-foreground">
@@ -194,6 +174,24 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
 
           <!-- Left sticky label -->
           <div #histLeft class="sec-anim lg:sticky lg:top-24 lg:self-start">
+            <div class="mb-6">
+              <img
+                ngSrc="/lattice_systems-logo.png"
+                alt="Lattice Systems"
+                width="600"
+                height="600"
+                class="h-12 w-auto dark:hidden"
+                priority
+              />
+              <img
+                ngSrc="/latticesystems-logo-dark-variant.png"
+                alt="Lattice Systems"
+                width="600"
+                height="600"
+                class="hidden h-12 w-auto dark:block"
+                priority
+              />
+            </div>
             <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-primary/70">NUESTRA HISTORIA</p>
             <h2 class="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               Por qué<br /> construimos SpaceIA.
