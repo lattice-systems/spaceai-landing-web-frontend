@@ -8,7 +8,6 @@ import {
   NgZone,
   viewChildren,
 } from '@angular/core';
-import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -94,7 +93,7 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
 
 @Component({
   selector: 'app-nosotros',
-  imports: [RouterLink, HlmButtonImports, NgIcon, NgOptimizedImage],
+  imports: [RouterLink, HlmButtonImports, NgIcon],
   providers: [
     provideIcons({ lucideMapPin, lucideZap, lucideUsers, lucideLayers, lucideShieldCheck, lucideEye, lucideTarget }),
   ],
@@ -174,24 +173,6 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
 
           <!-- Left sticky label -->
           <div #histLeft class="sec-anim lg:sticky lg:top-24 lg:self-start">
-            <div class="mb-6">
-              <img
-                ngSrc="/lattice_systems-logo.png"
-                alt="Lattice Systems"
-                width="600"
-                height="600"
-                class="h-12 w-auto dark:hidden"
-                priority
-              />
-              <img
-                ngSrc="/latticesystems-logo-dark-variant.png"
-                alt="Lattice Systems"
-                width="600"
-                height="600"
-                class="hidden h-12 w-auto dark:block"
-                priority
-              />
-            </div>
             <p class="mb-3 text-xs font-semibold uppercase tracking-widest text-primary/70">NUESTRA HISTORIA</p>
             <h2 class="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               Por qué<br /> construimos SpaceIA.
