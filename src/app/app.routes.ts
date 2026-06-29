@@ -21,6 +21,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/public/cotizador/cotizador').then((m) => m.Cotizador),
       },
+      {
+        path: 'nosotros',
+        loadComponent: () =>
+          import('./features/public/nosotros/nosotros').then((m) => m.Nosotros),
+      },
     ],
   },
 ];
