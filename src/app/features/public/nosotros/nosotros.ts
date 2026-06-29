@@ -8,6 +8,7 @@ import {
   NgZone,
   viewChildren,
 } from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -93,7 +94,7 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
 
 @Component({
   selector: 'app-nosotros',
-  imports: [RouterLink, HlmButtonImports, NgIcon],
+  imports: [RouterLink, HlmButtonImports, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({ lucideMapPin, lucideZap, lucideUsers, lucideLayers, lucideShieldCheck, lucideEye, lucideTarget }),
   ],
@@ -149,14 +150,34 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
       ></div>
 
       <div @fadeSlideIn class="relative z-10 mx-auto max-w-3xl">
+        <!-- Logo -->
+        <div class="mb-8">
+          <img
+            ngSrc="/lattice_systems-logo.png"
+            alt="Lattice Systems"
+            width="600"
+            height="600"
+            class="h-16 w-auto dark:hidden"
+            priority
+          />
+          <img
+            ngSrc="/latticesystems-logo-dark-variant.png"
+            alt="Lattice Systems"
+            width="600"
+            height="600"
+            class="hidden h-16 w-auto dark:block"
+            priority
+          />
+        </div>
+
         <!-- Location badge -->
-        <div class="mb-6 flex items-center gap-2">
+        <div class="mb-5 flex items-center gap-2">
           <ng-icon name="lucideMapPin" size="14" class="text-muted-foreground" aria-hidden="true" />
           <span class="text-xs font-medium text-muted-foreground">León, Guanajuato, México</span>
         </div>
 
         <h1 class="mb-4 text-5xl font-extrabold leading-[1.06] tracking-tighter text-foreground sm:text-6xl lg:text-7xl">
-          Somos Lattice<br class="hidden sm:block" /> Systems.
+          Construimos el<br class="hidden sm:block" /> campus del futuro.
         </h1>
 
         <p @fadeSlideInDelay class="max-w-xl text-lg leading-relaxed text-muted-foreground">

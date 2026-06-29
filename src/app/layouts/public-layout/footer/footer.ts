@@ -65,9 +65,23 @@ const NAV = [
               El ecosistema inteligente que conecta IA, IoT y automatización
               para transformar la experiencia universitaria.
             </p>
-            <p class="text-xs text-muted-foreground/70">
-              Desarrollado por&nbsp;<span class="font-medium text-muted-foreground">Lattice Systems</span>
-            </p>
+            <p class="mb-2 text-xs text-muted-foreground/60">Desarrollado por</p>
+            <a href="https://latticesystems.dev" target="_blank" rel="noopener noreferrer" aria-label="Lattice Systems">
+              <img
+                ngSrc="/lattice_systems-logo.png"
+                alt="Lattice Systems"
+                width="600"
+                height="600"
+                class="h-10 w-auto dark:hidden"
+              />
+              <img
+                ngSrc="/latticesystems-logo-dark-variant.png"
+                alt="Lattice Systems"
+                width="600"
+                height="600"
+                class="hidden h-10 w-auto dark:block"
+              />
+            </a>
           </div>
 
           <!-- Nav columns -->
