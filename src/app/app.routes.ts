@@ -11,6 +11,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/public/home/home').then((m) => m.Home),
       },
+      {
+        path: 'contacto',
+        loadComponent: () =>
+          import('./features/public/contacto/contacto').then((m) => m.Contacto),
+      },
     ],
   },
 ];
