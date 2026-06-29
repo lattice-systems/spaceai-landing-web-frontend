@@ -72,7 +72,7 @@ const FADE_MS     = 280;
     }
   `],
   template: `
-    <section class="bg-muted/20 py-14 sm:py-20">
+    <section class="py-14 sm:py-20">
       <div class="mx-auto max-w-4xl px-6 lg:px-16">
 
         <!-- Header -->
