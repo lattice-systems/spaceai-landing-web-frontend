@@ -8,17 +8,17 @@ import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 const CONTACT_INFO = [
   {
     label: 'Correo',
-    value: 'hola@latticesystems.mx',
-    href: 'mailto:hola@latticesystems.mx',
+    value: 'contacto@latticesystems.dev',
+    href: 'mailto:contacto@latticesystems.dev',
   },
   {
     label: 'Teléfono',
-    value: '+52 662 123 4567',
-    href: 'tel:+526621234567',
+    value: '81 4823 6850',
+    href: 'tel:+528148236850',
   },
   {
     label: 'Ubicación',
-    value: 'Hermosillo, Sonora, México',
+    value: 'León, Guanajuato, México',
     href: null,
   },
 ] as const;
