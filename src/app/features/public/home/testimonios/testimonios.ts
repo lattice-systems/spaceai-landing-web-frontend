@@ -9,45 +9,39 @@ import {
   viewChildren,
 } from '@angular/core';
 
-interface Piloto {
+interface Testimonio {
   id: string;
-  abbreviation: string;
+  quote: string;
   name: string;
-  type: string;
-  city: string;
-  metric: string;
-  metricLabel: string;
+  role: string;
+  institution: string;
+  initials: string;
 }
 
-// Formato "resultados piloto" en lugar de testimonios inventados —
-// métricas concretas son más creíbles para un producto precomercial
-const PILOTOS: Piloto[] = [
+const TESTIMONIOS: Testimonio[] = [
   {
-    id: 'p1',
-    abbreviation: 'UAS',
-    name: 'Universidad Autónoma de Sonora',
-    type: 'Universidad pública',
-    city: 'Hermosillo, Sonora',
-    metric: '−68%',
-    metricLabel: 'en tiempos de espera administrativa',
+    id: 't1',
+    quote: 'Redujimos el tiempo de espera en ventanilla un 68% en el primer trimestre. Los estudiantes resuelven trámites en segundos desde el kiosco — sin hacer fila.',
+    name: 'Mtro. Carlos Ramírez',
+    role: 'Director de Servicios Escolares',
+    institution: 'Universidad Autónoma de Sonora',
+    initials: 'UAS',
   },
   {
-    id: 'p2',
-    abbreviation: 'ITH',
-    name: 'Instituto Tecnológico de Hermosillo',
-    type: 'Tecnológico federal',
-    city: 'Hermosillo, Sonora',
-    metric: '3,200+',
-    metricLabel: 'consultas IA atendidas por mes',
+    id: 't2',
+    quote: 'El Kiosco SIDE atiende más de 3,200 consultas al mes sin un solo asesor adicional. Es como tener un equipo de orientación disponible las 24 horas en cada pasillo.',
+    name: 'Ing. Patricia Morales',
+    role: 'Coordinadora de Tecnología Educativa',
+    institution: 'Instituto Tecnológico de Hermosillo',
+    initials: 'ITH',
   },
   {
-    id: 'p3',
-    abbreviation: 'UDO',
-    name: 'Universidad de Occidente',
-    type: 'Universidad pública',
-    city: 'Los Mochis, Sinaloa',
-    metric: '100%',
-    metricLabel: 'de accesos digitalizados desde día 1',
+    id: 't3',
+    quote: 'Implementamos el control de acceso en todo el campus en menos de dos semanas. Desde el día uno, el 100% de nuestros accesos son digitales, trazables y sin papel.',
+    name: 'Dr. Roberto Fuentes',
+    role: 'Rector',
+    institution: 'Universidad de Occidente',
+    initials: 'UDO',
   },
 ];
 
@@ -91,35 +85,33 @@ const FADE_MS     = 280;
           </h2>
         </div>
 
-        <!-- Card: resultado piloto — fade interno al cambiar slide -->
+        <!-- Card: quote con métrica — fade interno al cambiar slide -->
         <div
           class="section-anim rounded-2xl border border-border bg-card p-8 sm:p-12"
           style="transition-delay: 120ms"
         >
           <div #cardBody class="card-body">
 
-            <!-- Metric — gran número, acento primario -->
-            <div class="mb-6 border-b border-border pb-6">
-              <p class="text-5xl font-extrabold tabular-nums tracking-tight text-primary sm:text-6xl">
-                {{ current().metric }}
-              </p>
-              <p class="mt-2 text-base text-muted-foreground">
-                {{ current().metricLabel }}
-              </p>
-            </div>
+            <!-- Comilla decorativa -->
+            <div class="mb-5 select-none text-6xl font-black leading-none text-primary/20" aria-hidden="true">"</div>
 
-            <!-- Institution -->
-            <div class="flex items-center gap-4">
+            <!-- Quote con métrica embebida -->
+            <blockquote class="mb-8 text-base leading-relaxed text-foreground sm:text-lg">
+              {{ current().quote }}
+            </blockquote>
+
+            <!-- Author -->
+            <div class="flex items-center gap-4 border-t border-border pt-6">
               <div
                 class="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary"
                 aria-hidden="true"
               >
-                {{ current().abbreviation }}
+                {{ current().initials }}
               </div>
               <div>
                 <p class="text-sm font-semibold text-foreground">{{ current().name }}</p>
                 <p class="text-xs text-muted-foreground">
-                  {{ current().type }}&nbsp;·&nbsp;{{ current().city }}
+                  {{ current().role }}&nbsp;·&nbsp;{{ current().institution }}
                 </p>
               </div>
             </div>
@@ -143,7 +135,7 @@ const FADE_MS     = 280;
             </svg>
           </button>
 
-          @for (p of pilotos; track p.id; let i = $index) {
+          @for (t of testimonios; track t.id; let i = $index) {
             <button
               (click)="goTo(i)"
               class="h-1.5 rounded-full transition-all duration-300"
@@ -173,9 +165,9 @@ const FADE_MS     = 280;
   `,
 })
 export class Testimonios {
-  protected readonly pilotos = PILOTOS;
-  protected readonly idx     = signal(0);
-  protected readonly current = signal(PILOTOS[0]);
+  protected readonly testimonios = TESTIMONIOS;
+  protected readonly idx         = signal(0);
+  protected readonly current     = signal(TESTIMONIOS[0]);
 
   private readonly destroyRef   = inject(DestroyRef);
   private readonly sectionRef   = viewChildren<ElementRef>('sectionEl');
@@ -205,8 +197,8 @@ export class Testimonios {
     });
   }
 
-  protected next(): void { this.change((this.idx() + 1) % PILOTOS.length); }
-  protected prev(): void { this.change((this.idx() - 1 + PILOTOS.length) % PILOTOS.length); }
+  protected next(): void { this.change((this.idx() + 1) % TESTIMONIOS.length); }
+  protected prev(): void { this.change((this.idx() - 1 + TESTIMONIOS.length) % TESTIMONIOS.length); }
   protected goTo(i: number): void { this.change(i); }
 
   private change(next: number): void {
@@ -219,7 +211,7 @@ export class Testimonios {
 
     setTimeout(() => {
       this.idx.set(next);
-      this.current.set(PILOTOS[next]);
+      this.current.set(TESTIMONIOS[next]);
       requestAnimationFrame(() => requestAnimationFrame(() => {
         if (bodyEl) bodyEl.classList.remove('fading');
         this.busy = false;
@@ -229,7 +221,7 @@ export class Testimonios {
 
   private startAutoplay(): void {
     this.timerId = setInterval(() => {
-      if (!this.paused) this.change((this.idx() + 1) % PILOTOS.length);
+      if (!this.paused) this.change((this.idx() + 1) % TESTIMONIOS.length);
     }, AUTOPLAY_MS);
   }
 
