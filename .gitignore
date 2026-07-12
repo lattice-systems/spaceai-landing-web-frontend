@@ -56,3 +56,10 @@ yarn.lock
 # IDE settings
 .claude/settings.json
 .claude/settings.local.json
+
+# Claude Code / AI agent tooling (not part of the project)
+.claude/
+.agents/
+.codex/
+.impeccable/
+skills-lock.json
