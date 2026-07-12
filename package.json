@@ -22,7 +22,7 @@
     "@ng-icons/core": "^32.2.0",
     "@ng-icons/lucide": "^32.2.0",
     "@spartan-ng/brain": "^1.0.2",
-    "@spartan-ng/mcp": "^1.0.2",
+    "@spartan-ng/mcp": "^1.0.4",
     "@tailwindcss/postcss": "^4.3.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
