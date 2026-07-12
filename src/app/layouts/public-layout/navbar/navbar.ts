@@ -60,7 +60,14 @@ const PRODUCT_ITEMS = [
     HlmButtonImports,
   ],
   providers: [
-    provideIcons({ lucideMenu, lucideX, lucideSmartphone, lucideFingerprint, lucideMonitor, lucideBot }),
+    provideIcons({
+      lucideMenu,
+      lucideX,
+      lucideSmartphone,
+      lucideFingerprint,
+      lucideMonitor,
+      lucideBot,
+    }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   animations: [
@@ -70,52 +77,57 @@ const PRODUCT_ITEMS = [
       transition('closed <=> open', animate('200ms ease-out')),
     ]),
   ],
-  styles: [`
-    :host { display: contents; }
+  styles: [
+    `
+      :host {
+        display: contents;
+      }
 
-    /* Bottom fade-border: visible only in bar mode */
-    .fade-border::after {
-      content: '';
-      position: absolute;
-      inset-inline: 0;
-      bottom: 0;
-      height: 1px;
-      background: linear-gradient(to right, transparent, var(--border), transparent);
-      transition: opacity 350ms ease;
-    }
-    .fade-border.island-mode::after {
-      opacity: 0;
-    }
-  `],
+      .fade-border::after {
+        content: '';
+        position: absolute;
+        inset-inline: 0;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(to right, transparent, var(--border), transparent);
+        transition: opacity 350ms ease;
+      }
+      .fade-border.island-mode::after {
+        opacity: 0;
+      }
+    `,
+  ],
   template: `
-    <!-- Outer shell: always fixed, adds top/side padding when island -->
     <header
-      class="fixed inset-x-0 top-0 z-50 fade-border transition-[padding] duration-[380ms] ease-out"
+      class="fade-border fixed inset-x-0 top-0 z-50 transition-[padding] duration-[380ms] ease-out"
       [class.island-mode]="isIsland()"
       [class.pt-4]="isIsland()"
       [class.px-4]="isIsland()"
       [class.md:px-8]="isIsland()"
     >
-      <!-- Inner pill / bar -->
       <div
         class="relative mx-auto flex items-center justify-between transition-all duration-[380ms] ease-out"
-        [class]="isIsland()
-          ? 'h-12 max-w-[820px] rounded-full border border-border/60 bg-background/75 px-2   shadow-[0_4px_28px_oklch(0_0_0/0.07)] backdrop-blur-xl'
-          : 'h-16 max-w-7xl bg-background/60 px-4 backdrop-blur-sm sm:px-6'"
+        [class]="
+          isIsland()
+            ? 'border-border/60 bg-background/75 h-12 max-w-[820px] rounded-full border px-2 shadow-[0_4px_28px_oklch(0_0_0/0.07)] backdrop-blur-xl'
+            : 'bg-background/60 h-16 max-w-7xl px-4 backdrop-blur-sm sm:px-6'
+        "
       >
         <!-- Logo -->
         <a routerLink="/" class="flex shrink-0 items-center">
           <img
             ngSrc="/spaceai-logo.png"
             alt="SpaceIA"
-            width="96" height="64"
+            width="96"
+            height="64"
             class="h-8 w-auto dark:hidden"
             priority
           />
           <img
             ngSrc="/spaceai-logo-dark-variant.png"
             alt="SpaceIA"
-            width="96" height="64"
+            width="96"
+            height="64"
             class="hidden h-8 w-auto dark:block"
             priority
           />
@@ -125,8 +137,13 @@ const PRODUCT_ITEMS = [
         <nav hlmNavigationMenu aria-label="Navegación principal" class="hidden md:flex">
           <ul hlmNavigationMenuList>
             <li hlmNavigationMenuItem>
-              <a hlmNavigationMenuLink routerLink="/nosotros" routerLinkActive
-                 #nosotros="routerLinkActive" [active]="nosotros.isActive">
+              <a
+                hlmNavigationMenuLink
+                routerLink="/nosotros"
+                routerLinkActive
+                #nosotros="routerLinkActive"
+                [active]="nosotros.isActive"
+              >
                 Nosotros
               </a>
             </li>
@@ -140,10 +157,12 @@ const PRODUCT_ITEMS = [
                       <a hlmNavigationMenuLink routerLink="/spaceai" [fragment]="item.fragment">
                         <div class="flex flex-col gap-1">
                           <div class="flex items-center gap-2">
-                            <ng-icon [name]="item.icon" class="size-4 shrink-0 text-primary" />
+                            <ng-icon [name]="item.icon" class="text-primary size-4 shrink-0" />
                             <span class="text-sm font-medium">{{ item.label }}</span>
                           </div>
-                          <p class="text-xs leading-snug text-muted-foreground">{{ item.description }}</p>
+                          <p class="text-muted-foreground text-xs leading-snug">
+                            {{ item.description }}
+                          </p>
                         </div>
                       </a>
                     </li>
@@ -153,20 +172,35 @@ const PRODUCT_ITEMS = [
             </li>
 
             <li hlmNavigationMenuItem>
-              <a hlmNavigationMenuLink routerLink="/casos-de-uso" routerLinkActive
-                 #casos="routerLinkActive" [active]="casos.isActive">
+              <a
+                hlmNavigationMenuLink
+                routerLink="/casos-de-uso"
+                routerLinkActive
+                #casos="routerLinkActive"
+                [active]="casos.isActive"
+              >
                 Casos de Uso
               </a>
             </li>
             <li hlmNavigationMenuItem>
-              <a hlmNavigationMenuLink routerLink="/faq" routerLinkActive
-                 #faq="routerLinkActive" [active]="faq.isActive">
+              <a
+                hlmNavigationMenuLink
+                routerLink="/faq"
+                routerLinkActive
+                #faq="routerLinkActive"
+                [active]="faq.isActive"
+              >
                 FAQ
               </a>
             </li>
             <li hlmNavigationMenuItem>
-              <a hlmNavigationMenuLink routerLink="/contacto" routerLinkActive
-                 #contacto="routerLinkActive" [active]="contacto.isActive">
+              <a
+                hlmNavigationMenuLink
+                routerLink="/contacto"
+                routerLinkActive
+                #contacto="routerLinkActive"
+                [active]="contacto.isActive"
+              >
                 Contacto
               </a>
             </li>
@@ -194,43 +228,47 @@ const PRODUCT_ITEMS = [
             <ng-icon
               name="lucideMenu"
               class="absolute inset-0 transition-all duration-150"
-              [class]="mobileOpen() ? 'rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'"
+              [class]="
+                mobileOpen() ? 'scale-0 rotate-90 opacity-0' : 'scale-100 rotate-0 opacity-100'
+              "
             />
             <ng-icon
               name="lucideX"
               class="absolute inset-0 transition-all duration-150"
-              [class]="mobileOpen() ? 'rotate-0 scale-100 opacity-100' : '-rotate-90 scale-0 opacity-0'"
+              [class]="
+                mobileOpen() ? 'scale-100 rotate-0 opacity-100' : 'scale-0 -rotate-90 opacity-0'
+              "
             />
           </span>
         </button>
       </div>
 
-      <!-- Mobile menu — se expande debajo del pill/bar -->
       <div
         id="mobile-menu"
         [@mobileMenu]="mobileOpen() ? 'open' : 'closed'"
         class="overflow-hidden md:hidden"
       >
         <nav
-          class="mx-auto flex max-w-7xl flex-col gap-0.5 rounded-b-2xl bg-background/90 px-4 pb-4 backdrop-blur-xl sm:px-6"
+          class="bg-background/90 mx-auto flex max-w-7xl flex-col gap-0.5 rounded-b-2xl px-4 pb-4 backdrop-blur-xl sm:px-6"
           aria-label="Menú móvil"
         >
           <a
             routerLink="/nosotros"
-            class="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            class="text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg px-3 py-2 text-sm transition-colors"
             (click)="mobileOpen.set(false)"
-          >Nosotros</a>
+            >Nosotros</a
+          >
 
           <div class="px-3 py-2">
-            <p class="mb-1 text-sm font-medium text-foreground">SpaceIA</p>
+            <p class="text-foreground mb-1 text-sm font-medium">SpaceIA</p>
             @for (item of productItems; track item.fragment) {
               <a
                 routerLink="/spaceai"
                 [fragment]="item.fragment"
-                class="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                class="text-muted-foreground hover:text-foreground flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
                 (click)="mobileOpen.set(false)"
               >
-                <ng-icon [name]="item.icon" class="size-3.5 shrink-0 text-primary" />
+                <ng-icon [name]="item.icon" class="text-primary size-3.5 shrink-0" />
                 {{ item.label }}
               </a>
             }
@@ -238,22 +276,31 @@ const PRODUCT_ITEMS = [
 
           <a
             routerLink="/casos-de-uso"
-            class="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            class="text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg px-3 py-2 text-sm transition-colors"
             (click)="mobileOpen.set(false)"
-          >Casos de Uso</a>
+            >Casos de Uso</a
+          >
           <a
             routerLink="/faq"
-            class="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            class="text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg px-3 py-2 text-sm transition-colors"
             (click)="mobileOpen.set(false)"
-          >FAQ</a>
+            >FAQ</a
+          >
           <a
             routerLink="/contacto"
-            class="rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            class="text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg px-3 py-2 text-sm transition-colors"
             (click)="mobileOpen.set(false)"
-          >Contacto</a>
+            >Contacto</a
+          >
 
-          <div class="mt-2 flex flex-col gap-2 border-t border-border pt-3">
-            <a hlmBtn variant="outline" size="sm" routerLink="/auth/login" (click)="mobileOpen.set(false)">
+          <div class="border-border mt-2 flex flex-col gap-2 border-t pt-3">
+            <a
+              hlmBtn
+              variant="outline"
+              size="sm"
+              routerLink="/auth/login"
+              (click)="mobileOpen.set(false)"
+            >
               Iniciar sesión
             </a>
             <a hlmBtn size="sm" routerLink="/cotizador" (click)="mobileOpen.set(false)">Cotizar</a>

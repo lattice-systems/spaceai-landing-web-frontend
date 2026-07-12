@@ -11,7 +11,10 @@ export class App {
   readonly #doc = inject(DOCUMENT);
 
   constructor() {
-    const mq = this.#doc.defaultView!.matchMedia('(prefers-color-scheme: dark)');
+    const view = this.#doc.defaultView;
+    if (!view?.matchMedia) return;
+
+    const mq = view.matchMedia('(prefers-color-scheme: dark)');
     this.#applyDark(mq.matches);
     mq.addEventListener('change', (e) => this.#applyDark(e.matches));
   }

@@ -6,28 +6,28 @@ const NAV = [
   {
     heading: 'Producto',
     links: [
-      { label: 'App Móvil',        href: '/spaceai', fragment: 'movil'  },
+      { label: 'App Móvil', href: '/spaceai', fragment: 'movil' },
       { label: 'Control de Acceso', href: '/spaceai', fragment: 'acceso' },
-      { label: 'Kiosco SIDE',      href: '/spaceai', fragment: 'kiosco' },
-      { label: 'Robot Autónomo',   href: '/spaceai', fragment: 'robot'  },
+      { label: 'Kiosco SIDE', href: '/spaceai', fragment: 'kiosco' },
+      { label: 'Robot Autónomo', href: '/spaceai', fragment: 'robot' },
     ],
   },
   {
     heading: 'Empresa',
     links: [
-      { label: 'Nosotros',    href: '/nosotros',    fragment: '' },
+      { label: 'Nosotros', href: '/nosotros', fragment: '' },
       { label: 'Casos de uso', href: '/casos-de-uso', fragment: '' },
-      { label: 'FAQ',         href: '/faq',         fragment: '' },
-      { label: 'Contacto',    href: '/contacto',    fragment: '' },
+      { label: 'FAQ', href: '/faq', fragment: '' },
+      { label: 'Contacto', href: '/contacto', fragment: '' },
     ],
   },
   {
     heading: 'Plataforma',
     links: [
-      { label: 'Solicitar cotización', href: '/cotizador',   fragment: '' },
-      { label: 'Iniciar sesión',       href: '/auth/login',  fragment: '' },
-      { label: 'Portal cliente',       href: '/client',      fragment: '' },
-      { label: 'Soporte',              href: '/contacto',    fragment: '' },
+      { label: 'Solicitar cotización', href: '/cotizador', fragment: '' },
+      { label: 'Iniciar sesión', href: '/auth/login', fragment: '' },
+      { label: 'Portal cliente', href: '/client', fragment: '' },
+      { label: 'Soporte', href: '/contacto', fragment: '' },
     ],
   },
 ] as const;
@@ -37,12 +37,10 @@ const NAV = [
   imports: [RouterLink, NgOptimizedImage],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <footer class="border-t border-border bg-card">
-
+    <footer class="border-border bg-card border-t">
       <!-- Main grid -->
       <div class="mx-auto max-w-7xl px-6 py-12 lg:px-16">
         <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-
           <!-- Brand column -->
           <div class="sm:col-span-2 lg:col-span-1">
             <a routerLink="/" class="mb-4 inline-flex items-center" aria-label="SpaceIA — inicio">
@@ -61,12 +59,17 @@ const NAV = [
                 class="hidden h-7 w-auto dark:block"
               />
             </a>
-            <p class="mb-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              El ecosistema inteligente que conecta IA, IoT y automatización
-              para transformar la experiencia universitaria.
+            <p class="text-muted-foreground mb-4 max-w-xs text-sm leading-relaxed">
+              El ecosistema inteligente que conecta IA, IoT y automatización para transformar la
+              experiencia universitaria.
             </p>
-            <p class="mb-2 text-xs text-muted-foreground/60">Desarrollado por</p>
-            <a href="https://latticesystems.dev" target="_blank" rel="noopener noreferrer" aria-label="Lattice Systems">
+            <p class="text-muted-foreground/60 mb-2 text-xs">Desarrollado por</p>
+            <a
+              href="https://latticesystems.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Lattice Systems"
+            >
               <img
                 ngSrc="/lattice_systems-logo.png"
                 alt="Lattice Systems"
@@ -87,7 +90,7 @@ const NAV = [
           <!-- Nav columns -->
           @for (col of nav; track col.heading) {
             <div>
-              <h3 class="mb-4 text-xs font-semibold uppercase tracking-widest text-foreground">
+              <h3 class="text-foreground mb-4 text-xs font-semibold tracking-widest uppercase">
                 {{ col.heading }}
               </h3>
               <ul class="space-y-3">
@@ -96,7 +99,7 @@ const NAV = [
                     <a
                       [routerLink]="link.href"
                       [fragment]="link.fragment || undefined"
-                      class="text-sm text-muted-foreground transition-colors duration-150 hover:text-foreground"
+                      class="text-muted-foreground hover:text-foreground text-sm transition-colors duration-150"
                     >
                       {{ link.label }}
                     </a>
@@ -105,37 +108,37 @@ const NAV = [
               </ul>
             </div>
           }
-
         </div>
       </div>
 
       <!-- Bottom bar -->
-      <div class="border-t border-border">
-        <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-5 sm:flex-row lg:px-16">
-          <p class="text-xs text-muted-foreground">
+      <div class="border-border border-t">
+        <div
+          class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-5 sm:flex-row lg:px-16"
+        >
+          <p class="text-muted-foreground text-xs">
             © {{ year }} Lattice Systems. Todos los derechos reservados.
           </p>
           <nav class="flex items-center gap-5" aria-label="Legal">
             <a
               routerLink="/privacidad"
-              class="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              class="text-muted-foreground hover:text-foreground text-xs transition-colors"
             >
               Política de privacidad
             </a>
             <a
               routerLink="/terminos"
-              class="text-xs text-muted-foreground transition-colors hover:text-foreground"
+              class="text-muted-foreground hover:text-foreground text-xs transition-colors"
             >
               Términos de uso
             </a>
           </nav>
         </div>
       </div>
-
     </footer>
   `,
 })
 export class Footer {
-  protected readonly nav  = NAV;
+  protected readonly nav = NAV;
   protected readonly year = new Date().getFullYear();
 }
