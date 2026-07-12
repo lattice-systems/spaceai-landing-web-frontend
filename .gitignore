@@ -65,6 +65,8 @@ yarn.lock
 .github/hooks/
 .github/skills/
 skills-lock.json
+CLAUDE.md
+AGENTS.md
 
 # Nx cache
 .nx/
