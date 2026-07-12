@@ -62,4 +62,9 @@ yarn.lock
 .agents/
 .codex/
 .impeccable/
+.github/hooks/
+.github/skills/
 skills-lock.json
+
+# Nx cache
+.nx/
