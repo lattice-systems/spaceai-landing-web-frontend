@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -7,6 +8,8 @@ export const routes: Routes = [
   },
   {
     path: 'client',
+    canActivate: [authGuard],
+    data: { roles: ['Client'] },
     loadComponent: () =>
       import('./layouts/portal-layout/portal-layout').then((m) => m.PortalLayout),
     children: [
@@ -36,10 +39,76 @@ export const routes: Routes = [
           import('./features/portal/client-section/client-section').then((m) => m.ClientSection),
       },
       {
-        path: 'perfil',
-        data: { section: 'perfil' },
+        path: 'opiniones',
         loadComponent: () =>
-          import('./features/portal/client-section/client-section').then((m) => m.ClientSection),
+          import('./features/portal/client-reviews/client-reviews').then((m) => m.ClientReviews),
+      },
+      {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./features/portal/client-profile/client-profile').then((m) => m.ClientProfile),
+      },
+    ],
+  },
+  {
+    path: 'admin',
+    canActivate: [authGuard],
+    data: { roles: ['Admin'] },
+    loadComponent: () => import('./layouts/admin-layout/admin-layout').then((m) => m.AdminLayout),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        redirectTo: 'usuarios',
+      },
+      {
+        path: 'usuarios',
+        loadComponent: () =>
+          import('./features/admin/admin-users/admin-users').then((m) => m.AdminUsers),
+      },
+      {
+        path: 'productos',
+        loadComponent: () =>
+          import('./features/admin/admin-products/admin-products').then((m) => m.AdminProducts),
+      },
+      {
+        path: 'cotizaciones',
+        loadComponent: () =>
+          import('./features/admin/admin-quotes/admin-quotes').then((m) => m.AdminQuotes),
+      },
+      {
+        path: 'mensajes',
+        loadComponent: () =>
+          import('./features/admin/admin-messages/admin-messages').then((m) => m.AdminMessages),
+      },
+      {
+        path: 'materiales',
+        loadComponent: () =>
+          import('./features/admin/admin-materials/admin-materials').then((m) => m.AdminMaterials),
+      },
+      {
+        path: 'recetas',
+        loadComponent: () =>
+          import('./features/admin/admin-recipes/admin-recipes').then((m) => m.AdminRecipes),
+      },
+      {
+        path: 'resenas',
+        loadComponent: () =>
+          import('./features/admin/admin-reviews/admin-reviews').then((m) => m.AdminReviews),
+      },
+      {
+        path: 'proveedores',
+        loadComponent: () =>
+          import('./features/admin/admin-providers/admin-providers').then(
+            (m) => m.AdminProviders,
+          ),
+      },
+      {
+        path: 'compras',
+        loadComponent: () =>
+          import('./features/admin/admin-purchases/admin-purchases').then(
+            (m) => m.AdminPurchases,
+          ),
       },
     ],
   },

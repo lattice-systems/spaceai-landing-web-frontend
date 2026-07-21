@@ -1,10 +1,11 @@
 import { NgOptimizedImage } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 import { HlmInputImports } from '@spartan-ng/helm/input';
+import { AuthService } from '../../../../core/services/auth.service';
 import { Footer } from '../../../../layouts/public-layout/footer/footer';
 
 @Component({
@@ -107,12 +108,12 @@ import { Footer } from '../../../../layouts/public-layout/footer/footer';
                 </p>
               </hlm-field-group>
 
-              @if (submitted()) {
+              @if (errorMessage()) {
                 <p
-                  class="bg-muted text-muted-foreground mt-5 rounded-md p-3 text-center text-sm"
-                  role="status"
+                  class="bg-destructive/10 text-destructive mt-5 rounded-md p-3 text-center text-sm"
+                  role="alert"
                 >
-                  Solicitud recibida.
+                  {{ errorMessage() }}
                 </p>
               }
             </form>
@@ -135,7 +136,11 @@ import { Footer } from '../../../../layouts/public-layout/footer/footer';
 })
 export class Login {
   private readonly fb = inject(FormBuilder);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   protected readonly submitted = signal(false);
+  protected readonly errorMessage = signal<string | null>(null);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -145,6 +150,19 @@ export class Login {
   protected submit(): void {
     this.form.markAllAsTouched();
     if (this.form.invalid) return;
+
     this.submitted.set(true);
+    this.errorMessage.set(null);
+
+    const { email, password } = this.form.getRawValue();
+    this.authService.login({ email, password }).subscribe({
+      next: ({ user }) => {
+        this.router.navigateByUrl(user.role === 'Admin' ? '/admin' : '/client');
+      },
+      error: () => {
+        this.submitted.set(false);
+        this.errorMessage.set('Correo o contraseña incorrectos.');
+      },
+    });
   }
 }

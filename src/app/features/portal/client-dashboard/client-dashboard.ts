@@ -1,14 +1,13 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-
-const STATS = [
-  { label: 'Productos activos', value: '2', note: 'Módulos SpaceIA asignados' },
-  { label: 'Documentos', value: '5', note: 'Guías y recursos disponibles' },
-  { label: 'Tickets abiertos', value: '1', note: 'Seguimiento de soporte' },
-] as const;
-
-const PRODUCTS = ['Aplicación móvil institucional', 'Control de acceso QR', 'Kiosco SIDE'] as const;
+import { of } from 'rxjs';
+import { AuthService } from '../../../core/services/auth.service';
+import { ClientsService } from '../../../core/services/clients.service';
+import { DocumentsService } from '../../../core/services/documents.service';
+import { QuotesService } from '../../../core/services/quotes.service';
+import { SupportTicketsService } from '../../../core/services/support-tickets.service';
 
 @Component({
   selector: 'app-client-dashboard',
@@ -34,7 +33,7 @@ const PRODUCTS = ['Aplicación móvil institucional', 'Control de acceso QR', 'K
       </div>
 
       <div class="grid auto-rows-min gap-4 md:grid-cols-3">
-        @for (stat of stats; track stat.label) {
+        @for (stat of stats(); track stat.label) {
           <article class="bg-muted/50 rounded-xl p-4">
             <p class="text-muted-foreground text-sm">{{ stat.label }}</p>
             <p class="text-foreground mt-3 text-3xl font-semibold">{{ stat.value }}</p>
@@ -47,17 +46,19 @@ const PRODUCTS = ['Aplicación móvil institucional', 'Control de acceso QR', 'K
         <section class="bg-muted/50 rounded-xl p-5">
           <div class="mb-5 flex items-center justify-between gap-3">
             <div>
-              <h2 class="text-foreground text-base font-semibold">Productos adquiridos</h2>
-              <p class="text-muted-foreground mt-1 text-sm">Módulos asociados a la cuenta.</p>
+              <h2 class="text-foreground text-base font-semibold">Información institucional</h2>
+              <p class="text-muted-foreground mt-1 text-sm">Datos de la cuenta registrada.</p>
             </div>
             <a hlmBtn variant="outline" size="sm" routerLink="/client/cotizaciones">Cotizaciones</a>
           </div>
           <div class="grid gap-3">
-            @for (product of products; track product) {
+            @for (field of clientInfo(); track field.label) {
               <div class="bg-background/70 border-border rounded-lg border p-4">
-                <p class="text-foreground text-sm font-medium">{{ product }}</p>
-                <div class="bg-muted mt-3 h-2 rounded-full"></div>
+                <p class="text-muted-foreground text-xs">{{ field.label }}</p>
+                <p class="text-foreground mt-1 text-sm font-medium">{{ field.value }}</p>
               </div>
+            } @empty {
+              <p class="text-muted-foreground text-sm">Cargando datos de la cuenta…</p>
             }
           </div>
         </section>
@@ -65,18 +66,14 @@ const PRODUCTS = ['Aplicación móvil institucional', 'Control de acceso QR', 'K
         <section class="bg-muted/50 rounded-xl p-5">
           <h2 class="text-foreground text-base font-semibold">Actividad reciente</h2>
           <div class="mt-5 grid gap-3">
-            <div class="bg-background/70 border-border rounded-lg border p-4">
-              <p class="text-foreground text-sm font-medium">Manual de instalación disponible</p>
-              <p class="text-muted-foreground mt-1 text-xs">Documentación técnica</p>
-            </div>
-            <div class="bg-background/70 border-border rounded-lg border p-4">
-              <p class="text-foreground text-sm font-medium">Ticket en revisión</p>
-              <p class="text-muted-foreground mt-1 text-xs">Soporte</p>
-            </div>
-            <div class="bg-background/70 border-border rounded-lg border p-4">
-              <p class="text-foreground text-sm font-medium">Cotización pendiente</p>
-              <p class="text-muted-foreground mt-1 text-xs">Comercial</p>
-            </div>
+            @for (activity of recentActivity(); track activity.title) {
+              <div class="bg-background/70 border-border rounded-lg border p-4">
+                <p class="text-foreground text-sm font-medium">{{ activity.title }}</p>
+                <p class="text-muted-foreground mt-1 text-xs">{{ activity.category }}</p>
+              </div>
+            } @empty {
+              <p class="text-muted-foreground text-sm">Sin actividad reciente.</p>
+            }
           </div>
         </section>
       </div>
@@ -84,6 +81,57 @@ const PRODUCTS = ['Aplicación móvil institucional', 'Control de acceso QR', 'K
   `,
 })
 export class ClientDashboard {
-  protected readonly stats = STATS;
-  protected readonly products = PRODUCTS;
+  private readonly authService = inject(AuthService);
+  private readonly clientsService = inject(ClientsService);
+  private readonly documentsService = inject(DocumentsService);
+  private readonly quotesService = inject(QuotesService);
+  private readonly supportTicketsService = inject(SupportTicketsService);
+
+  private readonly clientId = this.authService.user()?.clientId ?? null;
+
+  private readonly client = toSignal(
+    this.clientId ? this.clientsService.getById(this.clientId) : of(null),
+    { initialValue: null },
+  );
+
+  private readonly documents = toSignal(this.documentsService.list(), { initialValue: [] });
+
+  private readonly quotes = toSignal(this.quotesService.list(), { initialValue: [] });
+
+  private readonly tickets = toSignal(this.supportTicketsService.list(), { initialValue: [] });
+
+  protected readonly clientInfo = computed(() => {
+    const client = this.client();
+    if (!client) return [];
+    return [
+      { label: 'Institución', value: client.institutionName },
+      { label: 'Contacto', value: client.contactPerson },
+      { label: 'Correo', value: client.contactEmail },
+      { label: 'Estado', value: client.status },
+    ];
+  });
+
+  protected readonly stats = computed(() => [
+    {
+      label: 'Cotizaciones',
+      value: String(this.quotes().length),
+      note: 'Propuestas comerciales registradas',
+    },
+    {
+      label: 'Documentos',
+      value: String(this.documents().length),
+      note: 'Guías y recursos disponibles',
+    },
+    {
+      label: 'Tickets abiertos',
+      value: String(this.tickets().filter((t) => t.status !== 'Cerrado').length),
+      note: 'Seguimiento de soporte',
+    },
+  ]);
+
+  protected readonly recentActivity = computed(() => [
+    ...this.documents().map((d) => ({ title: d.title, category: 'Documentación técnica' })),
+    ...this.tickets().map((t) => ({ title: t.subject, category: 'Soporte' })),
+    ...this.quotes().map((q) => ({ title: `Cotización · ${q.institutionName}`, category: 'Comercial' })),
+  ]);
 }

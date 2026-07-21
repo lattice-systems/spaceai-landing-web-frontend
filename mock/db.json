@@ -1,0 +1,162 @@
+{
+  "products": [
+    {
+      "id": "movil",
+      "name": "Aplicación Móvil",
+      "description": "App institucional que porta la identidad QR del usuario.",
+      "isDeleted": false,
+      "createdAt": "2026-01-05T09:00:00.000Z",
+      "updatedAt": "2026-01-05T09:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    },
+    {
+      "id": "acceso",
+      "name": "Control de Acceso",
+      "description": "Validación QR en tablets de acceso a instalaciones.",
+      "isDeleted": false,
+      "createdAt": "2026-01-05T09:00:00.000Z",
+      "updatedAt": "2026-01-05T09:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    },
+    {
+      "id": "kiosco",
+      "name": "Kiosco SIDE",
+      "description": "Tablet de autoservicio e información del campus.",
+      "isDeleted": false,
+      "createdAt": "2026-01-05T09:00:00.000Z",
+      "updatedAt": "2026-01-05T09:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    },
+    {
+      "id": "robot",
+      "name": "Robot Autónomo",
+      "description": "Unidad autónoma de recorrido y asistencia en campus.",
+      "isDeleted": false,
+      "createdAt": "2026-01-05T09:00:00.000Z",
+      "updatedAt": "2026-01-05T09:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    }
+  ],
+  "clients": [
+    {
+      "id": "cli-001",
+      "name": "Universidad Autónoma de Sonora",
+      "productos": ["Aplicación móvil institucional", "Control de acceso QR", "Kiosco SIDE"],
+      "isDeleted": false,
+      "createdAt": "2026-01-10T12:00:00.000Z",
+      "updatedAt": "2026-01-10T12:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    }
+  ],
+  "documents": [
+    {
+      "id": "doc-001",
+      "clientId": "cli-001",
+      "title": "Manual de instalación",
+      "type": "Documentación técnica",
+      "isDeleted": false,
+      "createdAt": "2026-03-01T09:00:00.000Z",
+      "updatedAt": "2026-03-01T09:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    },
+    {
+      "id": "doc-002",
+      "clientId": "cli-001",
+      "title": "Guía de usuario",
+      "type": "Documentación técnica",
+      "isDeleted": false,
+      "createdAt": "2026-02-20T09:00:00.000Z",
+      "updatedAt": "2026-02-20T09:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    },
+    {
+      "id": "doc-003",
+      "clientId": "cli-001",
+      "title": "Ficha técnica control de acceso",
+      "type": "Documentación técnica",
+      "isDeleted": false,
+      "createdAt": "2026-02-10T09:00:00.000Z",
+      "updatedAt": "2026-02-10T09:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    }
+  ],
+  "support-tickets": [
+    {
+      "id": "tkt-001",
+      "clientId": "cli-001",
+      "subject": "Acceso QR en revisión",
+      "status": "En progreso",
+      "isDeleted": false,
+      "createdAt": "2026-03-05T09:00:00.000Z",
+      "updatedAt": "2026-03-05T09:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    },
+    {
+      "id": "tkt-002",
+      "clientId": "cli-001",
+      "subject": "Ajuste de usuarios",
+      "status": "Abierto",
+      "isDeleted": false,
+      "createdAt": "2026-03-02T09:00:00.000Z",
+      "updatedAt": "2026-03-02T09:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    }
+  ],
+  "quotes": [
+    {
+      "id": "qte-001",
+      "clientId": "cli-001",
+      "institucion": "Universidad Autónoma de Sonora",
+      "tipo": "Universidad Pública",
+      "tamanio": "1,000 – 5,000",
+      "productos": ["kiosco"],
+      "nombre": "María Torres",
+      "cargo": "Coordinadora TI",
+      "email": "cliente@universidad.edu.mx",
+      "timeline": "En menos de 3 meses",
+      "isDeleted": false,
+      "createdAt": "2026-02-28T09:00:00.000Z",
+      "updatedAt": "2026-02-28T09:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    }
+  ],
+  "users": [
+    {
+      "id": "usr-001",
+      "email": "cliente@universidad.edu.mx",
+      "password": "Password123",
+      "fullName": "María Torres",
+      "role": "Cliente",
+      "clientId": "cli-001",
+      "isDeleted": false,
+      "createdAt": "2026-01-10T12:00:00.000Z",
+      "updatedAt": "2026-01-10T12:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    },
+    {
+      "id": "usr-002",
+      "email": "admin@spaceia.com",
+      "password": "Password123",
+      "fullName": "Admin SpaceIA",
+      "role": "Admin",
+      "clientId": null,
+      "isDeleted": false,
+      "createdAt": "2026-01-10T12:00:00.000Z",
+      "updatedAt": "2026-01-10T12:00:00.000Z",
+      "createdBy": "system",
+      "updatedBy": "system"
+    }
+  ]
+}

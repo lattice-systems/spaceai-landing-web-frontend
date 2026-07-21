@@ -1,16 +1,26 @@
-# SpaceaiLandingWebFrontend
+# SpaceIA — Landing / plataforma comercial (Angular)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.1.
+Frontend Angular 22 (standalone components) de la plataforma comercial/admin de Lattice Systems para SpaceIA — sitio público, portal de clientes y panel de administrador en una sola app. Backend real en `../spaceai-landing-api-core` (ASP.NET Core).
 
-## Development server
+Ver `CLAUDE.md` para arquitectura, design system y convenciones. Ver `../docs/landing/PENDIENTES.md` para el checklist de la rúbrica y el estado de pendientes.
 
-To start a local development server, run:
+## Levantar en local
 
 ```bash
+npm install
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Requiere el backend real corriendo en `http://localhost:5134` (ver README de `spaceai-landing-api-core`) — `src/environments/environment.ts` apunta ahí, no al `mock/mock-server.js` de json-server que existía en etapas tempranas del proyecto.
+
+Abrir `http://localhost:4200/`.
+
+### Usuarios de prueba
+
+| Rol | Email | Password |
+|---|---|---|
+| Admin | `admin@spaceia.com` | `Admin123!` |
+| Client | `cliente@spaceia.com` | `Cliente123!` |
 
 ## Code scaffolding
 

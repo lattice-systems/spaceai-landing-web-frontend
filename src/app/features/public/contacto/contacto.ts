@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
+import { ContactMessagesService } from '../../../core/services/contact-messages.service';
 
 const CONTACT_INFO = [
   {
@@ -234,6 +235,12 @@ const CONTACT_INFO = [
                 <a routerLink="/privacidad" class="underline underline-offset-2 hover:text-foreground">política de privacidad</a>.
               </p>
 
+              @if (submitError()) {
+                <p class="text-center text-sm text-destructive" role="alert">
+                  No pudimos enviar tu mensaje. Intenta de nuevo en unos minutos.
+                </p>
+              }
+
             </form>
           } @else {
             <!-- Success state -->
@@ -261,9 +268,11 @@ const CONTACT_INFO = [
 })
 export class Contacto {
   private readonly fb = inject(FormBuilder);
+  private readonly contactMessagesService = inject(ContactMessagesService);
 
   protected readonly submitting = signal(false);
   protected readonly submitted  = signal(false);
+  protected readonly submitError = signal(false);
   protected readonly contactInfo = CONTACT_INFO;
 
   protected readonly form = this.fb.nonNullable.group({
@@ -284,10 +293,26 @@ export class Contacto {
     if (this.form.invalid) return;
 
     this.submitting.set(true);
-    // TODO: POST /api/support-tickets when backend ready
-    setTimeout(() => {
-      this.submitting.set(false);
-      this.submitted.set(true);
-    }, 900);
+    this.submitError.set(false);
+
+    const { nombre, cargo, email, institucion, mensaje } = this.form.getRawValue();
+    this.contactMessagesService
+      .create({
+        name: nombre,
+        jobTitle: cargo,
+        email,
+        institutionName: institucion,
+        message: mensaje,
+      })
+      .subscribe({
+        next: () => {
+          this.submitting.set(false);
+          this.submitted.set(true);
+        },
+        error: () => {
+          this.submitting.set(false);
+          this.submitError.set(true);
+        },
+      });
   }
 }

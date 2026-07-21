@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, NgZone, signal, viewChild } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBot, lucideCheck, lucideFingerprint, lucideMonitor, lucideSmartphone } from '@ng-icons/lucide';
+import { QuotesService } from '../../../core/services/quotes.service';
 import { SpartanStepper, SpartanStepperImports } from '../../../shared/stepper';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
@@ -12,11 +14,20 @@ const TIPOS     = ['Universidad Pública', 'Universidad Privada', 'Tecnológico'
 const TAMANIOS  = ['< 1,000', '1,000 – 5,000', '5,000 – 15,000', '+ 15,000'] as const;
 const TIMELINES = ['En menos de 3 meses', 'Entre 3 y 6 meses', 'Más de 6 meses', 'Solo explorando'] as const;
 
+// Representa cada rango elegido en el paso 1 como un StudentCount aproximado para el backend.
+const TAMANIO_TO_STUDENT_COUNT: Record<(typeof TAMANIOS)[number], number> = {
+  '< 1,000': 500,
+  '1,000 – 5,000': 3000,
+  '5,000 – 15,000': 10000,
+  '+ 15,000': 20000,
+};
+
+// Ids fijos sembrados por SpaceIA.Backend (Extensions/DataSeeder.cs) — deben coincidir.
 const PRODUCTOS = [
-  { id: 'movil',  label: 'Aplicación Móvil',  icon: 'lucideSmartphone',  color: '#22D3EE' },
-  { id: 'acceso', label: 'Control de Acceso',  icon: 'lucideFingerprint', color: '#38BDF8' },
-  { id: 'kiosco', label: 'Kiosco SIDE',        icon: 'lucideMonitor',     color: '#2DD4BF' },
-  { id: 'robot',  label: 'Robot Autónomo',     icon: 'lucideBot',         color: '#818CF8' },
+  { id: '22222222-2222-2222-2222-222222222221', label: 'Aplicación Móvil',  icon: 'lucideSmartphone',  color: '#22D3EE' },
+  { id: '22222222-2222-2222-2222-222222222222', label: 'Control de Acceso',  icon: 'lucideFingerprint', color: '#38BDF8' },
+  { id: '22222222-2222-2222-2222-222222222223', label: 'Kiosco SIDE',        icon: 'lucideMonitor',     color: '#2DD4BF' },
+  { id: '22222222-2222-2222-2222-222222222224', label: 'Robot Autónomo',     icon: 'lucideBot',         color: '#818CF8' },
 ] as const;
 
 // ─── State ───────────────────────────────────────────────────────────────────
@@ -38,7 +49,7 @@ const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 @Component({
   selector: 'app-cotizador',
-  imports: [RouterLink, HlmButtonImports, HlmInputImports, NgIcon, SpartanStepperImports],
+  imports: [RouterLink, HlmButtonImports, HlmInputImports, NgIcon, SpartanStepperImports, DecimalPipe],
   providers: [
     provideIcons({ lucideSmartphone, lucideFingerprint, lucideMonitor, lucideBot, lucideCheck }),
   ],
@@ -234,6 +245,10 @@ const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
                 }
               </div>
 
+              @if (submitError()) {
+                <p class="text-xs text-destructive" role="alert">{{ submitError() }}</p>
+              }
+
               <div class="flex justify-between pt-2">
                 <button hlmBtn variant="outline" type="button" spartanStepperPrevious (click)="clearErr()">
                   ← Atrás
@@ -287,6 +302,14 @@ const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
                 <span class="text-muted-foreground">Implementación</span>
                 <span class="text-right font-medium text-foreground">{{ state().timeline }}</span>
               </div>
+              @if (quoteTotal(); as total) {
+                <div class="flex justify-between gap-4 border-t border-border pt-2">
+                  <span class="text-muted-foreground">Total estimado</span>
+                  <span class="text-right font-semibold text-foreground">
+                    &#36;{{ total | number: '1.2-2' }} MXN
+                  </span>
+                </div>
+              }
             </div>
           </div>
           <a hlmBtn variant="outline" routerLink="/">Volver al inicio</a>
@@ -304,17 +327,19 @@ export class Cotizador {
   protected readonly productos = PRODUCTOS;
 
   protected readonly state      = signal<QuoteState>({ institucion: '', tipo: '', tamanio: '', productos: new Set(), nombre: '', cargo: '', email: '', timeline: '' });
-  protected readonly showErr    = signal(false);
-  protected readonly submitting = signal(false);
-  protected readonly done       = signal(false);
+  protected readonly showErr     = signal(false);
+  protected readonly submitting  = signal(false);
+  protected readonly submitError = signal<string | null>(null);
+  protected readonly done        = signal(false);
+  protected readonly quoteTotal  = signal<number | null>(null);
 
   protected readonly validEmail    = computed(() => isEmail(this.state().email));
   protected readonly productoLabels = computed(() =>
     PRODUCTOS.filter(p => this.state().productos.has(p.id)).map(p => p.label).join(', ')
   );
 
-  private readonly zone    = inject(NgZone);
-  private readonly stepper = viewChild(SpartanStepper);
+  private readonly quotesService = inject(QuotesService);
+  private readonly stepper       = viewChild(SpartanStepper);
 
   protected setField(field: 'institucion' | 'nombre' | 'cargo' | 'email', ev: Event): void {
     const val = (ev.target as HTMLInputElement).value;
@@ -354,9 +379,28 @@ export class Cotizador {
       this.showErr.set(true); return;
     }
     this.submitting.set(true);
-    // TODO: POST /api/quotes when backend ready
-    this.zone.runOutsideAngular(() => setTimeout(() =>
-      this.zone.run(() => { this.submitting.set(false); this.done.set(true); }),
-    900));
+    this.submitError.set(null);
+
+    this.quotesService
+      .create({
+        requesterName: s.nombre,
+        requesterEmail: s.email,
+        requesterRole: s.cargo,
+        institutionName: s.institucion,
+        institutionType: s.tipo,
+        studentCount: TAMANIO_TO_STUDENT_COUNT[s.tamanio as (typeof TAMANIOS)[number]],
+        quoteItems: [...s.productos].map((productModuleId) => ({ productModuleId, quantity: 1 })),
+      })
+      .subscribe({
+        next: (response) => {
+          this.submitting.set(false);
+          this.quoteTotal.set(response.total);
+          this.done.set(true);
+        },
+        error: () => {
+          this.submitting.set(false);
+          this.submitError.set('No se pudo enviar la solicitud. Intenta de nuevo.');
+        },
+      });
   }
 }

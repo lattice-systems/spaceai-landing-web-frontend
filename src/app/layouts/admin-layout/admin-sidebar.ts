@@ -3,44 +3,51 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideBookOpen,
-  lucideChartNoAxesColumn,
-  lucideFileText,
+  lucideBeaker,
+  lucideBox,
   lucideHome,
-  lucideLifeBuoy,
   lucideLogOut,
+  lucideMail,
+  lucidePackage,
   lucideQuote,
+  lucideReceipt,
   lucideStar,
-  lucideUser,
+  lucideTruck,
+  lucideUsers,
 } from '@ng-icons/lucide';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
 import { AuthService } from '../../core/services/auth.service';
 
 const MAIN_NAV = [
-  { label: 'Dashboard', route: '/client', icon: 'lucideChartNoAxesColumn', exact: true },
-  { label: 'Documentación', route: '/client/documentos', icon: 'lucideBookOpen', exact: false },
-  { label: 'Cotizaciones', route: '/client/cotizaciones', icon: 'lucideQuote', exact: false },
-  { label: 'Soporte', route: '/client/soporte', icon: 'lucideLifeBuoy', exact: false },
-  { label: 'Opiniones', route: '/client/opiniones', icon: 'lucideStar', exact: false },
-  { label: 'Perfil', route: '/client/perfil', icon: 'lucideUser', exact: false },
+  { label: 'Usuarios', route: '/admin/usuarios', icon: 'lucideUsers' },
+  { label: 'Productos', route: '/admin/productos', icon: 'lucideBox' },
+  { label: 'Materia prima', route: '/admin/materiales', icon: 'lucideBeaker' },
+  { label: 'Recetas', route: '/admin/recetas', icon: 'lucidePackage' },
+  { label: 'Proveedores', route: '/admin/proveedores', icon: 'lucideTruck' },
+  { label: 'Compras', route: '/admin/compras', icon: 'lucideReceipt' },
+  { label: 'Cotizaciones', route: '/admin/cotizaciones', icon: 'lucideQuote' },
+  { label: 'Reseñas', route: '/admin/resenas', icon: 'lucideStar' },
+  { label: 'Mensajes', route: '/admin/mensajes', icon: 'lucideMail' },
 ] as const;
 
 const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome' }] as const;
 
 @Component({
-  selector: 'app-portal-sidebar',
+  selector: 'app-admin-sidebar',
   imports: [NgOptimizedImage, RouterLink, RouterLinkActive, NgIcon, HlmSidebarImports],
   providers: [
     provideIcons({
-      lucideBookOpen,
-      lucideChartNoAxesColumn,
-      lucideFileText,
+      lucideBeaker,
+      lucideBox,
       lucideHome,
-      lucideLifeBuoy,
       lucideLogOut,
+      lucideMail,
+      lucidePackage,
       lucideQuote,
+      lucideReceipt,
       lucideStar,
-      lucideUser,
+      lucideTruck,
+      lucideUsers,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,7 +57,7 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
         <hlm-sidebar-header>
           <ul hlmSidebarMenu>
             <li hlmSidebarMenuItem>
-              <a hlmSidebarMenuButton size="lg" routerLink="/client" aria-label="SpaceIA portal">
+              <a hlmSidebarMenuButton size="lg" routerLink="/admin" aria-label="SpaceIA admin">
                 <span
                   class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
                 >
@@ -65,7 +72,7 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
                 </span>
                 <span class="grid flex-1 text-left text-sm leading-tight">
                   <span class="truncate font-medium">SpaceIA</span>
-                  <span class="text-muted-foreground truncate text-xs">Portal cliente</span>
+                  <span class="text-muted-foreground truncate text-xs">Portal admin</span>
                 </span>
               </a>
             </li>
@@ -74,7 +81,7 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
 
         <hlm-sidebar-content>
           <hlm-sidebar-group>
-            <div hlmSidebarGroupLabel>Operación</div>
+            <div hlmSidebarGroupLabel>Administración</div>
             <div hlmSidebarGroupContent>
               <ul hlmSidebarMenu>
                 @for (item of mainNav; track item.route) {
@@ -84,7 +91,6 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
                       [routerLink]="item.route"
                       routerLinkActive
                       #active="routerLinkActive"
-                      [routerLinkActiveOptions]="{ exact: item.exact }"
                       [isActive]="active.isActive"
                       [tooltip]="item.label"
                     >
@@ -119,16 +125,11 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
         <hlm-sidebar-footer>
           <ul hlmSidebarMenu>
             <li hlmSidebarMenuItem>
-              <a hlmSidebarMenuButton size="lg" routerLink="/client/perfil">
-                <span
-                  class="bg-sidebar-accent text-sidebar-accent-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
-                >
-                  <ng-icon name="lucideFileText" />
-                </span>
+              <a hlmSidebarMenuButton size="lg" routerLink="/admin">
                 <span class="grid flex-1 text-left text-sm leading-tight">
-                  <span class="truncate font-medium">{{ fullName() ?? 'Cuenta cliente' }}</span>
+                  <span class="truncate font-medium">{{ fullName() ?? 'Cuenta admin' }}</span>
                   <span class="text-muted-foreground truncate text-xs">{{
-                    user()?.email ?? 'Documentos y soporte'
+                    user()?.email ?? ''
                   }}</span>
                 </span>
               </a>
@@ -152,7 +153,7 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
     </div>
   `,
 })
-export class PortalSidebar {
+export class AdminSidebar {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
 
