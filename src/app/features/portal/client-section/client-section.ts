@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
+import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { of } from 'rxjs';
 import { DocumentsService } from '../../../core/services/documents.service';
 import { QuotesService } from '../../../core/services/quotes.service';
@@ -28,6 +30,7 @@ const HEADERS: Record<PortalSectionKey, { title: string; description: string; pr
 
 @Component({
   selector: 'app-client-section',
+  imports: [HlmCardImports, HlmEmptyImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -55,12 +58,18 @@ const HEADERS: Record<PortalSectionKey, { title: string; description: string; pr
           <h2 class="text-foreground text-base font-semibold">Listado</h2>
           <div class="mt-5 grid gap-3">
             @for (item of items(); track item.title) {
-              <article class="bg-background/70 border-border rounded-lg border p-4">
-                <p class="text-foreground text-sm font-medium">{{ item.title }}</p>
-                <p class="text-muted-foreground mt-1 text-xs">{{ item.subtitle }}</p>
-              </article>
+              <div hlmCard>
+                <div hlmCardContent>
+                  <p class="text-foreground text-sm font-medium">{{ item.title }}</p>
+                  <p class="text-muted-foreground mt-1 text-xs">{{ item.subtitle }}</p>
+                </div>
+              </div>
             } @empty {
-              <p class="text-muted-foreground text-sm">Sin registros por ahora.</p>
+              <div hlmEmpty>
+                <div hlmEmptyHeader>
+                  <p hlmEmptyTitle>Sin registros por ahora.</p>
+                </div>
+              </div>
             }
           </div>
         </section>

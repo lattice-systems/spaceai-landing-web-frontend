@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { AuthService } from '../../../core/services/auth.service';
 import { ClientsService } from '../../../core/services/clients.service';
@@ -8,7 +9,7 @@ import { UsersService } from '../../../core/services/users.service';
 
 @Component({
   selector: 'app-client-profile',
-  imports: [ReactiveFormsModule, HlmButtonImports, HlmInputImports],
+  imports: [ReactiveFormsModule, HlmButtonImports, HlmInputImports, HlmCardImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -22,68 +23,80 @@ import { UsersService } from '../../../core/services/users.service';
 
       <div class="grid gap-4 lg:grid-cols-2">
         <!-- Datos de cuenta -->
-        <section class="bg-muted/50 rounded-xl p-5">
-          <h2 class="text-foreground mb-4 text-base font-semibold">Datos de cuenta</h2>
-          <form [formGroup]="accountForm" (ngSubmit)="submitAccount()" class="grid gap-3">
-            <input hlmInput placeholder="Nombre" formControlName="firstName" />
-            <input hlmInput placeholder="Apellido" formControlName="lastName" />
-            <input hlmInput type="email" placeholder="Correo" formControlName="email" />
-            <input hlmInput placeholder="Teléfono" formControlName="phone" />
-            <button hlmBtn type="submit" [disabled]="accountForm.invalid || accountSubmitting()" class="w-fit">
-              @if (accountSubmitting()) { Guardando… } @else { Guardar datos de cuenta }
-            </button>
-            @if (accountSaved()) {
-              <p class="text-muted-foreground text-xs">Datos de cuenta actualizados.</p>
-            }
-          </form>
-        </section>
+        <div hlmCard>
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>Datos de cuenta</h2>
+          </div>
+          <div hlmCardContent>
+            <form [formGroup]="accountForm" (ngSubmit)="submitAccount()" class="grid gap-3">
+              <input hlmInput placeholder="Nombre" formControlName="firstName" />
+              <input hlmInput placeholder="Apellido" formControlName="lastName" />
+              <input hlmInput type="email" placeholder="Correo" formControlName="email" />
+              <input hlmInput placeholder="Teléfono" formControlName="phone" />
+              <button hlmBtn type="submit" [disabled]="accountForm.invalid || accountSubmitting()" class="w-fit">
+                @if (accountSubmitting()) { Guardando… } @else { Guardar datos de cuenta }
+              </button>
+              @if (accountSaved()) {
+                <p class="text-muted-foreground text-xs">Datos de cuenta actualizados.</p>
+              }
+            </form>
+          </div>
+        </div>
 
         <!-- Datos institucionales -->
-        <section class="bg-muted/50 rounded-xl p-5">
-          <h2 class="text-foreground mb-4 text-base font-semibold">Datos institucionales</h2>
-          <form [formGroup]="institutionForm" (ngSubmit)="submitInstitution()" class="grid gap-3">
-            <input hlmInput placeholder="Institución" formControlName="institutionName" />
-            <input hlmInput placeholder="Persona de contacto" formControlName="contactPerson" />
-            <input hlmInput type="email" placeholder="Correo de contacto" formControlName="contactEmail" />
-            <input hlmInput placeholder="Teléfono" formControlName="phone" />
-            <input hlmInput placeholder="Dirección" formControlName="address" />
-            <input hlmInput placeholder="Tipo de institución" formControlName="institutionType" />
-            <input hlmInput type="number" placeholder="Número de estudiantes" formControlName="studentCount" />
-            <button
-              hlmBtn
-              type="submit"
-              [disabled]="institutionForm.invalid || institutionSubmitting()"
-              class="w-fit"
-            >
-              @if (institutionSubmitting()) { Guardando… } @else { Guardar datos institucionales }
-            </button>
-            @if (institutionSaved()) {
-              <p class="text-muted-foreground text-xs">Datos institucionales actualizados.</p>
-            }
-          </form>
-        </section>
+        <div hlmCard>
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>Datos institucionales</h2>
+          </div>
+          <div hlmCardContent>
+            <form [formGroup]="institutionForm" (ngSubmit)="submitInstitution()" class="grid gap-3">
+              <input hlmInput placeholder="Institución" formControlName="institutionName" />
+              <input hlmInput placeholder="Persona de contacto" formControlName="contactPerson" />
+              <input hlmInput type="email" placeholder="Correo de contacto" formControlName="contactEmail" />
+              <input hlmInput placeholder="Teléfono" formControlName="phone" />
+              <input hlmInput placeholder="Dirección" formControlName="address" />
+              <input hlmInput placeholder="Tipo de institución" formControlName="institutionType" />
+              <input hlmInput type="number" placeholder="Número de estudiantes" formControlName="studentCount" />
+              <button
+                hlmBtn
+                type="submit"
+                [disabled]="institutionForm.invalid || institutionSubmitting()"
+                class="w-fit"
+              >
+                @if (institutionSubmitting()) { Guardando… } @else { Guardar datos institucionales }
+              </button>
+              @if (institutionSaved()) {
+                <p class="text-muted-foreground text-xs">Datos institucionales actualizados.</p>
+              }
+            </form>
+          </div>
+        </div>
 
         <!-- Cambiar contraseña -->
-        <section class="bg-muted/50 rounded-xl p-5 lg:col-span-2">
-          <h2 class="text-foreground mb-4 text-base font-semibold">Cambiar contraseña</h2>
-          <form [formGroup]="passwordForm" (ngSubmit)="submitPassword()" class="grid max-w-sm gap-3">
-            <input hlmInput type="password" placeholder="Contraseña actual" formControlName="currentPassword" />
-            <input hlmInput type="password" placeholder="Contraseña nueva" formControlName="newPassword" />
-            <input hlmInput type="password" placeholder="Confirmar contraseña nueva" formControlName="confirmPassword" />
-            @if (passwordForm.errors?.['mismatch'] && passwordForm.controls.confirmPassword.touched) {
-              <p class="text-destructive text-xs">Las contraseñas no coinciden.</p>
-            }
-            <button hlmBtn type="submit" [disabled]="passwordForm.invalid || passwordSubmitting()" class="w-fit">
-              @if (passwordSubmitting()) { Guardando… } @else { Cambiar contraseña }
-            </button>
-            @if (passwordSaved()) {
-              <p class="text-muted-foreground text-xs">Contraseña actualizada.</p>
-            }
-            @if (passwordError()) {
-              <p class="text-destructive text-xs">{{ passwordError() }}</p>
-            }
-          </form>
-        </section>
+        <div hlmCard class="lg:col-span-2">
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>Cambiar contraseña</h2>
+          </div>
+          <div hlmCardContent>
+            <form [formGroup]="passwordForm" (ngSubmit)="submitPassword()" class="grid max-w-sm gap-3">
+              <input hlmInput type="password" placeholder="Contraseña actual" formControlName="currentPassword" />
+              <input hlmInput type="password" placeholder="Contraseña nueva" formControlName="newPassword" />
+              <input hlmInput type="password" placeholder="Confirmar contraseña nueva" formControlName="confirmPassword" />
+              @if (passwordForm.errors?.['mismatch'] && passwordForm.controls.confirmPassword.touched) {
+                <p class="text-destructive text-xs">Las contraseñas no coinciden.</p>
+              }
+              <button hlmBtn type="submit" [disabled]="passwordForm.invalid || passwordSubmitting()" class="w-fit">
+                @if (passwordSubmitting()) { Guardando… } @else { Cambiar contraseña }
+              </button>
+              @if (passwordSaved()) {
+                <p class="text-muted-foreground text-xs">Contraseña actualizada.</p>
+              }
+              @if (passwordError()) {
+                <p class="text-destructive text-xs">{{ passwordError() }}</p>
+              }
+            </form>
+          </div>
+        </div>
       </div>
     </section>
   `,

@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { AuthService } from '../../../core/services/auth.service';
 import { ProductResponse } from '../../../core/models/product.model';
@@ -11,7 +14,15 @@ import { ReviewsService } from '../../../core/services/reviews.service';
 
 @Component({
   selector: 'app-client-reviews',
-  imports: [ReactiveFormsModule, HlmButtonImports, HlmInputImports, HlmTextareaImports],
+  imports: [
+    ReactiveFormsModule,
+    HlmButtonImports,
+    HlmInputImports,
+    HlmNativeSelectImports,
+    HlmTextareaImports,
+    HlmCardImports,
+    HlmBadgeImports,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -28,18 +39,18 @@ import { ReviewsService } from '../../../core/services/reviews.service';
         <section class="bg-muted/50 rounded-xl p-5">
           <h2 class="text-foreground mb-4 text-base font-semibold">Nueva opinión</h2>
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid gap-3">
-            <select hlmInput formControlName="productId">
-              <option value="" disabled>Producto</option>
+            <hlm-native-select formControlName="productId">
+              <option value="" disabled hlmNativeSelectOption>Producto</option>
               @for (product of products(); track product.id) {
-                <option [value]="product.id">{{ product.name }}</option>
+                <option [value]="product.id" hlmNativeSelectOption>{{ product.name }}</option>
               }
-            </select>
-            <select hlmInput formControlName="rating">
-              <option value="" disabled>Calificación</option>
+            </hlm-native-select>
+            <hlm-native-select formControlName="rating">
+              <option value="" disabled hlmNativeSelectOption>Calificación</option>
               @for (n of [5, 4, 3, 2, 1]; track n) {
-                <option [value]="n">{{ n }} / 5</option>
+                <option [value]="n" hlmNativeSelectOption>{{ n }} / 5</option>
               }
-            </select>
+            </hlm-native-select>
             <textarea
               hlmTextarea
               rows="4"
@@ -59,15 +70,17 @@ import { ReviewsService } from '../../../core/services/reviews.service';
           <h2 class="text-foreground text-base font-semibold">Mis opiniones</h2>
           <div class="mt-5 grid gap-3">
             @for (review of myReviews(); track review.id) {
-              <article class="bg-background/70 border-border rounded-lg border p-4">
-                <p class="text-foreground text-sm font-medium">
-                  {{ review.productName }} — {{ review.rating }}/5
-                </p>
-                <p class="text-muted-foreground mt-1 text-xs">{{ review.comment }}</p>
-                <p class="text-muted-foreground mt-2 text-xs">
-                  {{ review.isApproved ? 'Publicada' : 'Pendiente de aprobación' }}
-                </p>
-              </article>
+              <div hlmCard>
+                <div hlmCardContent>
+                  <p class="text-foreground text-sm font-medium">
+                    {{ review.productName }} — {{ review.rating }}/5
+                  </p>
+                  <p class="text-muted-foreground mt-1 text-xs">{{ review.comment }}</p>
+                  <span hlmBadge [variant]="review.isApproved ? 'default' : 'secondary'" class="mt-2">
+                    {{ review.isApproved ? 'Publicada' : 'Pendiente de aprobación' }}
+                  </span>
+                </div>
+              </div>
             } @empty {
               <p class="text-muted-foreground text-sm">Aún no has dejado opiniones.</p>
             }

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
 import { of } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { ClientsService } from '../../../core/services/clients.service';
@@ -11,7 +12,7 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [RouterLink, HlmButtonImports],
+  imports: [RouterLink, HlmButtonImports, HlmCardImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -34,24 +35,26 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
 
       <div class="grid auto-rows-min gap-4 md:grid-cols-3">
         @for (stat of stats(); track stat.label) {
-          <article class="bg-muted/50 rounded-xl p-4">
-            <p class="text-muted-foreground text-sm">{{ stat.label }}</p>
-            <p class="text-foreground mt-3 text-3xl font-semibold">{{ stat.value }}</p>
-            <p class="text-muted-foreground mt-2 text-xs">{{ stat.note }}</p>
-          </article>
+          <div hlmCard>
+            <div hlmCardContent>
+              <p class="text-muted-foreground text-sm">{{ stat.label }}</p>
+              <p class="text-foreground mt-3 text-3xl font-semibold">{{ stat.value }}</p>
+              <p class="text-muted-foreground mt-2 text-xs">{{ stat.note }}</p>
+            </div>
+          </div>
         }
       </div>
 
       <div class="grid flex-1 gap-4 lg:grid-cols-[1.15fr_0.85fr]">
-        <section class="bg-muted/50 rounded-xl p-5">
-          <div class="mb-5 flex items-center justify-between gap-3">
+        <div hlmCard>
+          <div hlmCardHeader class="flex-row items-center justify-between gap-3">
             <div>
-              <h2 class="text-foreground text-base font-semibold">Información institucional</h2>
-              <p class="text-muted-foreground mt-1 text-sm">Datos de la cuenta registrada.</p>
+              <h2 hlmCardTitle>Información institucional</h2>
+              <p hlmCardDescription>Datos de la cuenta registrada.</p>
             </div>
             <a hlmBtn variant="outline" size="sm" routerLink="/client/cotizaciones">Cotizaciones</a>
           </div>
-          <div class="grid gap-3">
+          <div hlmCardContent class="grid gap-3">
             @for (field of clientInfo(); track field.label) {
               <div class="bg-background/70 border-border rounded-lg border p-4">
                 <p class="text-muted-foreground text-xs">{{ field.label }}</p>
@@ -61,11 +64,13 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
               <p class="text-muted-foreground text-sm">Cargando datos de la cuenta…</p>
             }
           </div>
-        </section>
+        </div>
 
-        <section class="bg-muted/50 rounded-xl p-5">
-          <h2 class="text-foreground text-base font-semibold">Actividad reciente</h2>
-          <div class="mt-5 grid gap-3">
+        <div hlmCard>
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>Actividad reciente</h2>
+          </div>
+          <div hlmCardContent class="grid gap-3">
             @for (activity of recentActivity(); track activity.title) {
               <div class="bg-background/70 border-border rounded-lg border p-4">
                 <p class="text-foreground text-sm font-medium">{{ activity.title }}</p>
@@ -75,7 +80,7 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
               <p class="text-muted-foreground text-sm">Sin actividad reciente.</p>
             }
           </div>
-        </section>
+        </div>
       </div>
     </section>
   `,
