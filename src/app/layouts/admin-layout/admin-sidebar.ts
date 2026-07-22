@@ -5,6 +5,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideBeaker,
   lucideBox,
+  lucideChevronsUpDown,
   lucideHome,
   lucideLogOut,
   lucideMail,
@@ -13,9 +14,12 @@ import {
   lucideReceipt,
   lucideStar,
   lucideTruck,
+  lucideUser,
   lucideUsers,
 } from '@ng-icons/lucide';
-import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
+import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
+import { HlmSidebarImports, HlmSidebarService } from '@spartan-ng/helm/sidebar';
 import { AuthService } from '../../core/services/auth.service';
 
 const MAIN_NAV = [
@@ -34,11 +38,20 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
 
 @Component({
   selector: 'app-admin-sidebar',
-  imports: [NgOptimizedImage, RouterLink, RouterLinkActive, NgIcon, HlmSidebarImports],
+  imports: [
+    NgOptimizedImage,
+    RouterLink,
+    RouterLinkActive,
+    NgIcon,
+    HlmSidebarImports,
+    HlmAvatarImports,
+    HlmDropdownMenuImports,
+  ],
   providers: [
     provideIcons({
       lucideBeaker,
       lucideBox,
+      lucideChevronsUpDown,
       lucideHome,
       lucideLogOut,
       lucideMail,
@@ -47,6 +60,7 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
       lucideReceipt,
       lucideStar,
       lucideTruck,
+      lucideUser,
       lucideUsers,
     }),
   ],
@@ -59,7 +73,7 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
             <li hlmSidebarMenuItem>
               <a hlmSidebarMenuButton size="lg" routerLink="/admin" aria-label="SpaceIA admin">
                 <span
-                  class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg"
+                  class="bg-card border-primary/25 flex aspect-square size-8 items-center justify-center rounded-lg border-2"
                 >
                   <img
                     ngSrc="/spaceai-icon.png"
@@ -106,7 +120,7 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
           <hlm-sidebar-separator />
 
           <hlm-sidebar-group>
-            <div hlmSidebarGroupLabel>Cuenta</div>
+            <div hlmSidebarGroupLabel>General</div>
             <div hlmSidebarGroupContent>
               <ul hlmSidebarMenu>
                 @for (item of secondaryNav; track item.route) {
@@ -125,24 +139,23 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
         <hlm-sidebar-footer>
           <ul hlmSidebarMenu>
             <li hlmSidebarMenuItem>
-              <a hlmSidebarMenuButton size="lg" routerLink="/admin">
+              <button
+                hlmSidebarMenuButton
+                size="lg"
+                [hlmDropdownMenuTrigger]="userMenu"
+                [side]="menuSide()"
+                align="end"
+              >
+                <hlm-avatar class="rounded-lg">
+                  <span hlmAvatarFallback>{{ initials() }}</span>
+                </hlm-avatar>
                 <span class="grid flex-1 text-left text-sm leading-tight">
                   <span class="truncate font-medium">{{ fullName() ?? 'Cuenta admin' }}</span>
                   <span class="text-muted-foreground truncate text-xs">{{
                     user()?.email ?? ''
                   }}</span>
                 </span>
-              </a>
-            </li>
-            <li hlmSidebarMenuItem>
-              <button
-                hlmSidebarMenuButton
-                type="button"
-                (click)="logout()"
-                [tooltip]="'Cerrar sesión'"
-              >
-                <ng-icon name="lucideLogOut" />
-                <span>Cerrar sesión</span>
+                <ng-icon name="lucideChevronsUpDown" class="ml-auto text-base" />
               </button>
             </li>
           </ul>
@@ -151,11 +164,38 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
 
       <ng-content />
     </div>
+
+    <ng-template #userMenu>
+      <hlm-dropdown-menu class="min-w-56 rounded-lg">
+        <hlm-dropdown-menu-label>
+          <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
+            <hlm-avatar class="rounded-lg">
+              <span hlmAvatarFallback>{{ initials() }}</span>
+            </hlm-avatar>
+            <span class="grid flex-1 text-left text-sm leading-tight">
+              <span class="truncate font-medium">{{ fullName() ?? 'Cuenta admin' }}</span>
+              <span class="text-muted-foreground truncate text-xs">{{ user()?.email ?? '' }}</span>
+            </span>
+          </div>
+        </hlm-dropdown-menu-label>
+        <hlm-dropdown-menu-separator />
+        <button hlmDropdownMenuItem routerLink="/admin/perfil">
+          <ng-icon name="lucideUser" />
+          Editar perfil
+        </button>
+        <hlm-dropdown-menu-separator />
+        <button hlmDropdownMenuItem variant="destructive" (click)="logout()">
+          <ng-icon name="lucideLogOut" />
+          Cerrar sesión
+        </button>
+      </hlm-dropdown-menu>
+    </ng-template>
   `,
 })
 export class AdminSidebar {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly sidebarService = inject(HlmSidebarService);
 
   protected readonly mainNav = MAIN_NAV;
   protected readonly secondaryNav = SECONDARY_NAV;
@@ -164,6 +204,12 @@ export class AdminSidebar {
     const user = this.user();
     return user ? `${user.firstName} ${user.lastName}` : null;
   });
+  protected readonly initials = computed(() => {
+    const user = this.user();
+    if (!user) return 'AD';
+    return `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || 'AD';
+  });
+  protected readonly menuSide = computed(() => (this.sidebarService.isMobile() ? 'top' : 'right'));
 
   protected logout(): void {
     this.authService.logout();

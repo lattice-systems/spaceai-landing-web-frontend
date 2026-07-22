@@ -110,6 +110,11 @@ export const routes: Routes = [
             (m) => m.AdminPurchases,
           ),
       },
+      {
+        path: 'perfil',
+        loadComponent: () =>
+          import('./features/admin/admin-profile/admin-profile').then((m) => m.AdminProfile),
+      },
     ],
   },
   {
