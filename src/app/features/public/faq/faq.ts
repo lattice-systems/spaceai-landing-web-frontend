@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { HlmAccordionImports } from '@spartan-ng/helm/accordion';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 
 const FAQS = [
@@ -27,7 +28,7 @@ const FAQS = [
 
 @Component({
   selector: 'app-faq',
-  imports: [RouterLink, HlmButtonImports],
+  imports: [RouterLink, HlmButtonImports, HlmAccordionImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="mx-auto max-w-4xl px-6 py-24 lg:px-8">
@@ -41,14 +42,16 @@ const FAQS = [
         </p>
       </section>
 
-      <section class="mt-12 flex flex-col gap-4">
+      <section hlmAccordion type="single" class="mt-12">
         @for (item of faqs; track item.question) {
-          <article class="border-border bg-card rounded-lg border p-6">
-            <h2 class="text-card-foreground text-lg font-semibold tracking-tight">
+          <div hlmAccordionItem>
+            <hlm-accordion-trigger class="px-6">
               {{ item.question }}
-            </h2>
-            <p class="text-muted-foreground mt-3 text-sm leading-relaxed">{{ item.answer }}</p>
-          </article>
+            </hlm-accordion-trigger>
+            <hlm-accordion-content class="px-6">
+              <p class="text-muted-foreground text-sm leading-relaxed">{{ item.answer }}</p>
+            </hlm-accordion-content>
+          </div>
         }
       </section>
 

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmCardImports } from '@spartan-ng/helm/card';
 
 const USE_CASES = [
   {
@@ -27,7 +28,7 @@ const USE_CASES = [
 
 @Component({
   selector: 'app-casos-de-uso',
-  imports: [RouterLink, HlmButtonImports],
+  imports: [RouterLink, HlmButtonImports, HlmCardImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="mx-auto max-w-7xl px-6 py-24 lg:px-16">
@@ -46,19 +47,17 @@ const USE_CASES = [
 
       <section class="mt-14 grid gap-5 md:grid-cols-2">
         @for (item of useCases; track item.title) {
-          <article
-            class="border-border bg-card flex min-h-64 flex-col justify-between gap-8 rounded-lg border p-6"
-          >
-            <div>
-              <h2 class="text-card-foreground text-xl font-bold tracking-tight">
-                {{ item.title }}
-              </h2>
+          <div hlmCard class="flex min-h-64 flex-col justify-between gap-8">
+            <div hlmCardContent>
+              <h2 hlmCardTitle class="text-xl">{{ item.title }}</h2>
               <p class="text-muted-foreground mt-3 text-sm leading-relaxed">{{ item.body }}</p>
             </div>
-            <p class="bg-muted text-foreground rounded-md p-4 text-sm font-medium">
-              {{ item.result }}
-            </p>
-          </article>
+            <div hlmCardFooter>
+              <p class="bg-muted text-foreground w-full rounded-md p-4 text-sm font-medium">
+                {{ item.result }}
+              </p>
+            </div>
+          </div>
         }
       </section>
 
