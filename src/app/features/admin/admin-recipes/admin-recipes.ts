@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
+import { HlmTableImports } from '@spartan-ng/helm/table';
 import { MaterialResponse } from '../../../core/models/material.model';
 import { ProductModuleResponse } from '../../../core/models/product-module.model';
 import { ProductRecipeResponse } from '../../../core/models/product-recipe.model';
@@ -12,7 +14,14 @@ import { ProductRecipesService } from '../../../core/services/product-recipes.se
 
 @Component({
   selector: 'app-admin-recipes',
-  imports: [ReactiveFormsModule, HlmButtonImports, HlmInputImports, DecimalPipe],
+  imports: [
+    ReactiveFormsModule,
+    HlmButtonImports,
+    HlmInputImports,
+    HlmNativeSelectImports,
+    HlmTableImports,
+    DecimalPipe,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -29,39 +38,43 @@ import { ProductRecipesService } from '../../../core/services/product-recipes.se
 
       <section class="bg-muted/50 rounded-xl p-5">
         <h2 class="text-foreground mb-4 text-base font-semibold">Precio calculado por módulo</h2>
-        <table class="w-full text-left text-sm">
-          <thead>
-            <tr class="text-muted-foreground border-border border-b">
-              <th class="pb-3 font-medium">Módulo</th>
-              <th class="pb-3 font-medium">Precio de venta</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (module of modules(); track module.id) {
-              <tr class="border-border/60 border-b last:border-0">
-                <td class="text-foreground py-3 font-medium">{{ module.name }}</td>
-                <td class="text-muted-foreground py-3">{{ module.price | number: '1.2-2' }}</td>
+        <div hlmTableContainer>
+          <table hlmTable>
+            <thead hlmTHead>
+              <tr hlmTr>
+                <th hlmTh>Módulo</th>
+                <th hlmTh>Precio de venta</th>
               </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody hlmTBody>
+              @for (module of modules(); track module.id) {
+                <tr hlmTr>
+                  <td hlmTd class="font-medium">{{ module.name }}</td>
+                  <td hlmTd class="text-muted-foreground">{{ module.price | number: '1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <section class="bg-muted/50 rounded-xl p-5">
         <h2 class="text-foreground mb-4 text-base font-semibold">Agregar material a receta</h2>
         <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid gap-3 sm:grid-cols-4">
-          <select hlmInput formControlName="productModuleId">
-            <option value="" disabled>Módulo</option>
+          <hlm-native-select formControlName="productModuleId">
+            <option value="" disabled hlmNativeSelectOption>Módulo</option>
             @for (module of modules(); track module.id) {
-              <option [value]="module.id">{{ module.name }}</option>
+              <option [value]="module.id" hlmNativeSelectOption>{{ module.name }}</option>
             }
-          </select>
-          <select hlmInput formControlName="materialId">
-            <option value="" disabled>Material</option>
+          </hlm-native-select>
+          <hlm-native-select formControlName="materialId">
+            <option value="" disabled hlmNativeSelectOption>Material</option>
             @for (material of materials(); track material.id) {
-              <option [value]="material.id">{{ material.name }} ({{ material.unitCost | number: '1.2-2' }})</option>
+              <option [value]="material.id" hlmNativeSelectOption>
+                {{ material.name }} ({{ material.unitCost | number: '1.2-2' }})
+              </option>
             }
-          </select>
+          </hlm-native-select>
           <input hlmInput type="number" min="1" placeholder="Cantidad" formControlName="quantity" />
           <button hlmBtn type="submit" [disabled]="form.invalid || submitting()">
             @if (submitting()) { Guardando… } @else { Agregar }
@@ -69,35 +82,41 @@ import { ProductRecipesService } from '../../../core/services/product-recipes.se
         </form>
       </section>
 
-      <section class="bg-muted/50 overflow-x-auto rounded-xl p-5">
-        <table class="w-full text-left text-sm">
-          <thead>
-            <tr class="text-muted-foreground border-border border-b">
-              <th class="pb-3 font-medium">Módulo</th>
-              <th class="pb-3 font-medium">Material</th>
-              <th class="pb-3 font-medium">Cantidad</th>
-              <th class="pb-3 font-medium">Costo unitario</th>
-              <th class="pb-3 font-medium">Subtotal</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (recipe of recipes(); track recipe.id) {
-              <tr class="border-border/60 border-b last:border-0">
-                <td class="text-foreground py-3 font-medium">{{ recipe.productModuleName }}</td>
-                <td class="text-muted-foreground py-3">{{ recipe.materialName }}</td>
-                <td class="text-muted-foreground py-3">{{ recipe.quantity }}</td>
-                <td class="text-muted-foreground py-3">{{ recipe.unitCost | number: '1.2-2' }}</td>
-                <td class="text-muted-foreground py-3">{{ recipe.subtotal | number: '1.2-2' }}</td>
+      <section class="bg-muted/50 rounded-xl p-5">
+        <div hlmTableContainer>
+          <table hlmTable>
+            <thead hlmTHead>
+              <tr hlmTr>
+                <th hlmTh>Módulo</th>
+                <th hlmTh>Material</th>
+                <th hlmTh>Cantidad</th>
+                <th hlmTh>Costo unitario</th>
+                <th hlmTh>Subtotal</th>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="5" class="text-muted-foreground py-6 text-center">
-                  Sin recetas registradas.
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody hlmTBody>
+              @for (recipe of recipes(); track recipe.id) {
+                <tr hlmTr>
+                  <td hlmTd class="font-medium">{{ recipe.productModuleName }}</td>
+                  <td hlmTd class="text-muted-foreground">{{ recipe.materialName }}</td>
+                  <td hlmTd class="text-muted-foreground">{{ recipe.quantity }}</td>
+                  <td hlmTd class="text-muted-foreground">
+                    {{ recipe.unitCost | number: '1.2-2' }}
+                  </td>
+                  <td hlmTd class="text-muted-foreground">
+                    {{ recipe.subtotal | number: '1.2-2' }}
+                  </td>
+                </tr>
+              } @empty {
+                <tr hlmTr>
+                  <td hlmTd colspan="5" class="text-muted-foreground text-center">
+                    Sin recetas registradas.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </section>
     </section>
   `,

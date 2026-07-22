@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { HlmTableImports } from '@spartan-ng/helm/table';
 import { ReviewResponse } from '../../../core/models/review.model';
 import { ReviewsService } from '../../../core/services/reviews.service';
 
 @Component({
   selector: 'app-admin-reviews',
-  imports: [HlmButtonImports],
+  imports: [HlmButtonImports, HlmBadgeImports, HlmTableImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -20,46 +22,56 @@ import { ReviewsService } from '../../../core/services/reviews.service';
         </p>
       </div>
 
-      <section class="bg-muted/50 overflow-x-auto rounded-xl p-5">
-        <table class="w-full text-left text-sm">
-          <thead>
-            <tr class="text-muted-foreground border-border border-b">
-              <th class="pb-3 font-medium">Cliente</th>
-              <th class="pb-3 font-medium">Producto</th>
-              <th class="pb-3 font-medium">Calificación</th>
-              <th class="pb-3 font-medium">Comentario</th>
-              <th class="pb-3 font-medium">Estado</th>
-              <th class="pb-3 font-medium">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (review of reviews(); track review.id) {
-              <tr class="border-border/60 border-b last:border-0 align-top">
-                <td class="text-foreground py-3 font-medium whitespace-nowrap">{{ review.institutionName }}</td>
-                <td class="text-muted-foreground py-3 whitespace-nowrap">{{ review.productName }}</td>
-                <td class="text-muted-foreground py-3 whitespace-nowrap">{{ review.rating }}/5</td>
-                <td class="text-muted-foreground py-3 max-w-md">{{ review.comment }}</td>
-                <td class="text-muted-foreground py-3 whitespace-nowrap">
-                  {{ review.isApproved ? 'Aprobada' : 'Pendiente' }}
-                </td>
-                <td class="py-3 whitespace-nowrap">
-                  @if (!review.isApproved) {
-                    <button hlmBtn size="sm" (click)="approve(review.id)">Aprobar</button>
-                  }
-                  <button hlmBtn size="sm" variant="outline" (click)="reject(review.id)">
-                    Rechazar
-                  </button>
-                </td>
+      <section class="bg-muted/50 rounded-xl p-5">
+        <div hlmTableContainer>
+          <table hlmTable>
+            <thead hlmTHead>
+              <tr hlmTr>
+                <th hlmTh>Cliente</th>
+                <th hlmTh>Producto</th>
+                <th hlmTh>Calificación</th>
+                <th hlmTh>Comentario</th>
+                <th hlmTh>Estado</th>
+                <th hlmTh>Acciones</th>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="6" class="text-muted-foreground py-6 text-center">
-                  Sin reseñas recibidas.
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody hlmTBody>
+              @for (review of reviews(); track review.id) {
+                <tr hlmTr class="align-top">
+                  <td hlmTd class="font-medium whitespace-nowrap">{{ review.institutionName }}</td>
+                  <td hlmTd class="text-muted-foreground whitespace-nowrap">
+                    {{ review.productName }}
+                  </td>
+                  <td hlmTd class="text-muted-foreground whitespace-nowrap">
+                    {{ review.rating }}/5
+                  </td>
+                  <td hlmTd class="text-muted-foreground max-w-md">{{ review.comment }}</td>
+                  <td hlmTd class="whitespace-nowrap">
+                    <span hlmBadge [variant]="review.isApproved ? 'default' : 'secondary'">
+                      {{ review.isApproved ? 'Aprobada' : 'Pendiente' }}
+                    </span>
+                  </td>
+                  <td hlmTd class="whitespace-nowrap">
+                    <div class="flex gap-2">
+                      @if (!review.isApproved) {
+                        <button hlmBtn size="sm" (click)="approve(review.id)">Aprobar</button>
+                      }
+                      <button hlmBtn size="sm" variant="outline" (click)="reject(review.id)">
+                        Rechazar
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr hlmTr>
+                  <td hlmTd colspan="6" class="text-muted-foreground text-center">
+                    Sin reseñas recibidas.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </section>
     </section>
   `,

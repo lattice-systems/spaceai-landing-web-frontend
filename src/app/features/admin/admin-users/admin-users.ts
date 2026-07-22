@@ -1,9 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmTableImports } from '@spartan-ng/helm/table';
 import { UsersService } from '../../../core/services/users.service';
 
 @Component({
   selector: 'app-admin-users',
+  imports: [HlmTableImports, HlmBadgeImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -15,31 +18,37 @@ import { UsersService } from '../../../core/services/users.service';
         </p>
       </div>
 
-      <section class="bg-muted/50 overflow-x-auto rounded-xl p-5">
-        <table class="w-full text-left text-sm">
-          <thead>
-            <tr class="text-muted-foreground border-border border-b">
-              <th class="pb-3 font-medium">Nombre</th>
-              <th class="pb-3 font-medium">Correo</th>
-              <th class="pb-3 font-medium">Rol</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (user of users(); track user.id) {
-              <tr class="border-border/60 border-b last:border-0">
-                <td class="text-foreground py-3 font-medium">
-                  {{ user.firstName }} {{ user.lastName }}
-                </td>
-                <td class="text-muted-foreground py-3">{{ user.email }}</td>
-                <td class="text-muted-foreground py-3">{{ user.role }}</td>
+      <section class="bg-muted/50 rounded-xl p-5">
+        <div hlmTableContainer>
+          <table hlmTable>
+            <thead hlmTHead>
+              <tr hlmTr>
+                <th hlmTh>Nombre</th>
+                <th hlmTh>Correo</th>
+                <th hlmTh>Rol</th>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="3" class="text-muted-foreground py-6 text-center">Sin usuarios.</td>
-              </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody hlmTBody>
+              @for (user of users(); track user.id) {
+                <tr hlmTr>
+                  <td hlmTd class="font-medium">{{ user.firstName }} {{ user.lastName }}</td>
+                  <td hlmTd class="text-muted-foreground">{{ user.email }}</td>
+                  <td hlmTd>
+                    <span hlmBadge [variant]="user.role === 'Admin' ? 'default' : 'secondary'">
+                      {{ user.role }}
+                    </span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr hlmTr>
+                  <td hlmTd colspan="3" class="text-muted-foreground text-center">
+                    Sin usuarios.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </section>
     </section>
   `,

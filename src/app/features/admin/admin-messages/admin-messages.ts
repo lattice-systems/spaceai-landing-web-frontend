@@ -1,9 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmTableImports } from '@spartan-ng/helm/table';
 import { ContactMessagesService } from '../../../core/services/contact-messages.service';
 
 @Component({
   selector: 'app-admin-messages',
+  imports: [HlmTableImports, HlmBadgeImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -17,37 +20,43 @@ import { ContactMessagesService } from '../../../core/services/contact-messages.
         </p>
       </div>
 
-      <section class="bg-muted/50 overflow-x-auto rounded-xl p-5">
-        <table class="w-full text-left text-sm">
-          <thead>
-            <tr class="text-muted-foreground border-border border-b">
-              <th class="pb-3 font-medium">Nombre</th>
-              <th class="pb-3 font-medium">Correo</th>
-              <th class="pb-3 font-medium">Institución</th>
-              <th class="pb-3 font-medium">Cargo</th>
-              <th class="pb-3 font-medium">Mensaje</th>
-              <th class="pb-3 font-medium">Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (msg of messages(); track msg.id) {
-              <tr class="border-border/60 border-b last:border-0 align-top">
-                <td class="text-foreground py-3 font-medium whitespace-nowrap">{{ msg.name }}</td>
-                <td class="text-muted-foreground py-3 whitespace-nowrap">{{ msg.email }}</td>
-                <td class="text-muted-foreground py-3 whitespace-nowrap">{{ msg.institutionName }}</td>
-                <td class="text-muted-foreground py-3 whitespace-nowrap">{{ msg.jobTitle }}</td>
-                <td class="text-muted-foreground py-3 max-w-md">{{ msg.message }}</td>
-                <td class="text-muted-foreground py-3 whitespace-nowrap">{{ msg.status }}</td>
+      <section class="bg-muted/50 rounded-xl p-5">
+        <div hlmTableContainer>
+          <table hlmTable>
+            <thead hlmTHead>
+              <tr hlmTr>
+                <th hlmTh>Nombre</th>
+                <th hlmTh>Correo</th>
+                <th hlmTh>Institución</th>
+                <th hlmTh>Cargo</th>
+                <th hlmTh>Mensaje</th>
+                <th hlmTh>Estado</th>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="6" class="text-muted-foreground py-6 text-center">
-                  Sin mensajes recibidos.
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+            </thead>
+            <tbody hlmTBody>
+              @for (msg of messages(); track msg.id) {
+                <tr hlmTr class="align-top">
+                  <td hlmTd class="font-medium whitespace-nowrap">{{ msg.name }}</td>
+                  <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ msg.email }}</td>
+                  <td hlmTd class="text-muted-foreground whitespace-nowrap">
+                    {{ msg.institutionName }}
+                  </td>
+                  <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ msg.jobTitle }}</td>
+                  <td hlmTd class="text-muted-foreground max-w-md">{{ msg.message }}</td>
+                  <td hlmTd class="whitespace-nowrap">
+                    <span hlmBadge variant="secondary">{{ msg.status }}</span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr hlmTr>
+                  <td hlmTd colspan="6" class="text-muted-foreground text-center">
+                    Sin mensajes recibidos.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </section>
     </section>
   `,
