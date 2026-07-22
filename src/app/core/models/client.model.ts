@@ -11,6 +11,14 @@ export interface ClientResponse {
   status: string;
 }
 
+export interface CreateClientRequest {
+  userId: string;
+  institutionName: string;
+  contactPerson: string;
+  phone: string;
+  address: string;
+}
+
 export interface UpdateClientRequest {
   institutionName: string;
   contactPerson: string;

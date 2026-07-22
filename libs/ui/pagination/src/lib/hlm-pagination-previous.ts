@@ -44,9 +44,9 @@ export class HlmPaginationPrevious {
   public readonly queryParamsHandling = input<RouterLink['queryParamsHandling']>();
 
   /** The aria-label for the previous page link. */
-  public readonly ariaLabel = input<string>('Go to previous page', { alias: 'aria-label' });
+  public readonly ariaLabel = input<string>('Ir a la página anterior', { alias: 'aria-label' });
   /** The text to display for the previous page link. */
-  public readonly text = input<string>('Previous');
+  public readonly text = input<string>('Anterior');
   /** Whether the button should only display the icon. */
   public readonly iconOnly = input<boolean, BooleanInput>(false, {
     transform: booleanAttribute,
