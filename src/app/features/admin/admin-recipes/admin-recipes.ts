@@ -140,7 +140,7 @@ export class AdminRecipes {
 
   constructor() {
     this.reload();
-    this.materialsService.list().subscribe((data) => this.materials.set(data));
+    this.materialsService.listAll().subscribe((data) => this.materials.set(data));
   }
 
   protected onSubmit(): void {
@@ -158,6 +158,7 @@ export class AdminRecipes {
 
   private reload(): void {
     this.recipesService.list().subscribe((data) => this.recipes.set(data));
-    this.modulesService.list().subscribe((data) => this.modules.set(data));
+    // Admin ve todos los módulos (incluidos inactivos) para poder asignarles receta antes de publicarlos.
+    this.modulesService.listAll(false).subscribe((data) => this.modules.set(data));
   }
 }
