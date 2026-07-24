@@ -14,3 +14,15 @@ export interface CreateProductRecipeRequest {
   materialId: string;
   quantity: number;
 }
+
+export interface UpdateProductRecipeRequest {
+  quantity: number;
+}
+
+export interface ProductRecipesQuery {
+  pageNumber: number;
+  pageSize: number;
+  search?: string;
+  productModuleId?: string;
+  materialId?: string;
+}
