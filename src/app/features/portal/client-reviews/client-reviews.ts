@@ -113,7 +113,7 @@ export class ClientReviews {
   });
 
   constructor() {
-    this.productsService.list().subscribe((data) => this.products.set(data));
+    this.productsService.listAll().subscribe((data) => this.products.set(data));
     this.reload();
   }
 

@@ -4,7 +4,8 @@ import { RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideBot, lucideCheck, lucideFingerprint, lucideMonitor, lucideSmartphone } from '@ng-icons/lucide';
+import { lucideBot, lucideBox, lucideCheck, lucideFingerprint, lucideMonitor, lucideSmartphone } from '@ng-icons/lucide';
+import { ProductModulesService } from '../../../core/services/product-modules.service';
 import { QuotesService } from '../../../core/services/quotes.service';
 import { SpartanStepper, SpartanStepperImports } from '../../../shared/stepper';
 
@@ -22,13 +23,29 @@ const TAMANIO_TO_STUDENT_COUNT: Record<(typeof TAMANIOS)[number], number> = {
   '+ 15,000': 20000,
 };
 
-// Ids fijos sembrados por SpaceIA.Backend (Extensions/DataSeeder.cs) — deben coincidir.
-const PRODUCTOS = [
-  { id: '22222222-2222-2222-2222-222222222221', label: 'Aplicación Móvil',  icon: 'lucideSmartphone',  color: '#22D3EE' },
-  { id: '22222222-2222-2222-2222-222222222222', label: 'Control de Acceso',  icon: 'lucideFingerprint', color: '#38BDF8' },
-  { id: '22222222-2222-2222-2222-222222222223', label: 'Kiosco SIDE',        icon: 'lucideMonitor',     color: '#2DD4BF' },
-  { id: '22222222-2222-2222-2222-222222222224', label: 'Robot Autónomo',     icon: 'lucideBot',         color: '#818CF8' },
-] as const;
+// Icono/color de marca por id de módulo — pensado para los 4 del seed (Extensions/DataSeeder.cs),
+// pero cualquier módulo nuevo creado desde /admin/productos cae en DEFAULT_ICON/DEFAULT_COLOR.
+const ICON_BY_MODULE_ID: Record<string, string> = {
+  '22222222-2222-2222-2222-222222222221': 'lucideSmartphone',
+  '22222222-2222-2222-2222-222222222222': 'lucideFingerprint',
+  '22222222-2222-2222-2222-222222222223': 'lucideMonitor',
+  '22222222-2222-2222-2222-222222222224': 'lucideBot',
+};
+const COLOR_BY_MODULE_ID: Record<string, string> = {
+  '22222222-2222-2222-2222-222222222221': '#22D3EE',
+  '22222222-2222-2222-2222-222222222222': '#38BDF8',
+  '22222222-2222-2222-2222-222222222223': '#2DD4BF',
+  '22222222-2222-2222-2222-222222222224': '#818CF8',
+};
+const DEFAULT_ICON = 'lucideBox';
+const DEFAULT_COLOR = '#94A3B8';
+
+interface ProductoOption {
+  id: string;
+  label: string;
+  icon: string;
+  color: string;
+}
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -51,7 +68,7 @@ const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
   selector: 'app-cotizador',
   imports: [RouterLink, HlmButtonImports, HlmInputImports, NgIcon, SpartanStepperImports, DecimalPipe],
   providers: [
-    provideIcons({ lucideSmartphone, lucideFingerprint, lucideMonitor, lucideBot, lucideCheck }),
+    provideIcons({ lucideSmartphone, lucideFingerprint, lucideMonitor, lucideBot, lucideBox, lucideCheck }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [`
@@ -147,7 +164,7 @@ const isEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
             <div class="flex flex-col gap-6 pt-6">
 
               <div class="grid grid-cols-2 gap-3">
-                @for (p of productos; track p.id) {
+                @for (p of productos(); track p.id) {
                   <button type="button" (click)="toggleProducto(p.id)"
                     class="opt-btn relative flex flex-col items-start gap-3 rounded-lg border p-5 text-left"
                     [class]="state().productos.has(p.id)
@@ -324,7 +341,7 @@ export class Cotizador {
   protected readonly tipos     = TIPOS;
   protected readonly tamanios  = TAMANIOS;
   protected readonly timelines = TIMELINES;
-  protected readonly productos = PRODUCTOS;
+  protected readonly productos = signal<ProductoOption[]>([]);
 
   protected readonly state      = signal<QuoteState>({ institucion: '', tipo: '', tamanio: '', productos: new Set(), nombre: '', cargo: '', email: '', timeline: '' });
   protected readonly showErr     = signal(false);
@@ -335,11 +352,26 @@ export class Cotizador {
 
   protected readonly validEmail    = computed(() => isEmail(this.state().email));
   protected readonly productoLabels = computed(() =>
-    PRODUCTOS.filter(p => this.state().productos.has(p.id)).map(p => p.label).join(', ')
+    this.productos().filter(p => this.state().productos.has(p.id)).map(p => p.label).join(', ')
   );
 
-  private readonly quotesService = inject(QuotesService);
-  private readonly stepper       = viewChild(SpartanStepper);
+  private readonly modulesService = inject(ProductModulesService);
+  private readonly quotesService  = inject(QuotesService);
+  private readonly stepper        = viewChild(SpartanStepper);
+
+  constructor() {
+    // Solo módulos publicados (isActive=true) — el backend ya filtra esto para llamadas anónimas.
+    this.modulesService.listAll().subscribe((modules) => {
+      this.productos.set(
+        modules.map((m) => ({
+          id: m.id,
+          label: m.name,
+          icon: ICON_BY_MODULE_ID[m.id] ?? DEFAULT_ICON,
+          color: COLOR_BY_MODULE_ID[m.id] ?? DEFAULT_COLOR,
+        })),
+      );
+    });
+  }
 
   protected setField(field: 'institucion' | 'nombre' | 'cargo' | 'email', ev: Event): void {
     const val = (ev.target as HTMLInputElement).value;

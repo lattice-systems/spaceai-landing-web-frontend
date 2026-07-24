@@ -24,7 +24,7 @@ import { AuthService } from '../../core/services/auth.service';
 
 const MAIN_NAV = [
   { label: 'Usuarios', route: '/admin/usuarios', icon: 'lucideUsers' },
-  { label: 'Productos', route: '/admin/productos', icon: 'lucideBox' },
+  { label: 'Catálogo', route: '/admin/productos', icon: 'lucideBox' },
   { label: 'Materia prima', route: '/admin/materiales', icon: 'lucideBeaker' },
   { label: 'Recetas', route: '/admin/recetas', icon: 'lucidePackage' },
   { label: 'Proveedores', route: '/admin/proveedores', icon: 'lucideTruck' },
