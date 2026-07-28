@@ -28,9 +28,11 @@ import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { MaterialResponse } from '../../../core/models/material.model';
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { ProviderResponse } from '../../../core/models/provider.model';
 import { PurchaseItemResponse, PurchaseResponse } from '../../../core/models/purchase.model';
+import { MaterialsService } from '../../../core/services/materials.service';
 import { ProvidersService } from '../../../core/services/providers.service';
 import { PurchasesService } from '../../../core/services/purchases.service';
 import { StatusChip } from '../../../shared/status-chip/status-chip';
@@ -329,24 +331,37 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
 
           <div class="grid gap-3">
             @for (item of items.controls; track $index; let i = $index) {
-              <div [formGroup]="item" class="grid items-center gap-2 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
-                <input hlmInput placeholder="Material" formControlName="materialName" />
-                <input hlmInput type="number" min="1" placeholder="Cantidad" formControlName="quantity" />
-                <input hlmInput type="number" step="0.01" min="0" placeholder="Costo unitario" formControlName="unitCost" />
-                <span class="text-muted-foreground text-sm">
-                  {{ subtotalOf(item) | currency: 'USD' }}
-                </span>
-                <button
-                  hlmBtn
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  [disabled]="items.length === 1"
-                  (click)="removeItem(i)"
-                  aria-label="Quitar material"
-                >
-                  <ng-icon name="lucideTrash2" />
-                </button>
+              <div [formGroup]="item" class="grid gap-2">
+                <div class="grid items-center gap-2 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]">
+                  <hlm-native-select
+                    [value]="item.getRawValue().materialId ?? ''"
+                    (valueChange)="onMaterialSelect(item, $event)"
+                  >
+                    <option value="" hlmNativeSelectOption>Otro material (texto libre)</option>
+                    @for (material of activeMaterials(); track material.id) {
+                      <option [value]="material.id" hlmNativeSelectOption>{{ material.name }}</option>
+                    }
+                  </hlm-native-select>
+                  <input hlmInput type="number" min="1" placeholder="Cantidad" formControlName="quantity" />
+                  <input hlmInput type="number" step="0.01" min="0" placeholder="Costo unitario" formControlName="unitCost" />
+                  <span class="text-muted-foreground text-sm">
+                    {{ subtotalOf(item) | currency: 'USD' }}
+                  </span>
+                  <button
+                    hlmBtn
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    [disabled]="items.length === 1"
+                    (click)="removeItem(i)"
+                    aria-label="Quitar material"
+                  >
+                    <ng-icon name="lucideTrash2" />
+                  </button>
+                </div>
+                @if (!item.getRawValue().materialId) {
+                  <input hlmInput placeholder="Nombre del material" formControlName="materialName" />
+                }
               </div>
             }
           </div>
@@ -494,6 +509,7 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
 export class AdminPurchases {
   private readonly fb = inject(FormBuilder);
   private readonly providersService = inject(ProvidersService);
+  private readonly materialsService = inject(MaterialsService);
   private readonly purchasesService = inject(PurchasesService);
 
   @ViewChild('createDialogRef') private createDialogRef!: HlmDialog;
@@ -515,6 +531,7 @@ export class AdminPurchases {
 
   protected readonly providers = signal<ProviderResponse[]>([]);
   protected readonly activeProviders = signal<ProviderResponse[]>([]);
+  protected readonly activeMaterials = signal<MaterialResponse[]>([]);
 
   protected readonly search = signal('');
   protected readonly providerFilter = signal('');
@@ -572,6 +589,10 @@ export class AdminPurchases {
       this.activeProviders.set(data.filter((p) => p.isActive));
     });
 
+    this.materialsService.listAll().subscribe((data) => {
+      this.activeMaterials.set(data.filter((m) => m.isActive));
+    });
+
     // Efecto central: cualquier cambio de búsqueda/filtro/página dispara una sola recarga.
     effect(() => {
       this.search();
@@ -585,6 +606,7 @@ export class AdminPurchases {
 
   private newItem() {
     return this.fb.nonNullable.group({
+      materialId: this.fb.control<string | null>(null),
       materialName: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(1)]],
       unitCost: [0, [Validators.required, Validators.min(0)]],
@@ -593,6 +615,16 @@ export class AdminPurchases {
 
   protected addItem(): void {
     this.items.push(this.newItem());
+  }
+
+  /** Elegir un material del catálogo fija materialId y toma su nombre; "otro" vuelve a texto libre. */
+  protected onMaterialSelect(item: ReturnType<typeof this.newItem>, value: string | null | undefined): void {
+    if (!value) {
+      item.patchValue({ materialId: null, materialName: '' });
+      return;
+    }
+    const material = this.activeMaterials().find((m) => m.id === value);
+    item.patchValue({ materialId: value, materialName: material?.name ?? '' });
   }
 
   protected removeItem(index: number): void {

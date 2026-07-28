@@ -1,5 +1,6 @@
 export interface PurchaseItemResponse {
   id: string;
+  materialId: string | null;
   materialName: string;
   description: string | null;
   quantity: number;
@@ -29,6 +30,7 @@ export interface PurchaseResponse {
 }
 
 export interface CreatePurchaseItemRequest {
+  materialId?: string | null;
   materialName: string;
   description?: string;
   quantity: number;
