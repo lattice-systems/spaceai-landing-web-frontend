@@ -8,6 +8,7 @@ import {
   lucideChevronsUpDown,
   lucideHome,
   lucideLayoutDashboard,
+  lucideLifeBuoy,
   lucideLogOut,
   lucideMail,
   lucidePackage,
@@ -34,6 +35,7 @@ const MAIN_NAV = [
   { label: 'Cotizaciones', route: '/admin/cotizaciones', icon: 'lucideQuote' },
   { label: 'Reseñas', route: '/admin/resenas', icon: 'lucideStar' },
   { label: 'Mensajes', route: '/admin/mensajes', icon: 'lucideMail' },
+  { label: 'Soporte', route: '/admin/soporte', icon: 'lucideLifeBuoy' },
 ] as const;
 
 const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome' }] as const;
@@ -56,6 +58,7 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
       lucideChevronsUpDown,
       lucideHome,
       lucideLayoutDashboard,
+      lucideLifeBuoy,
       lucideLogOut,
       lucideMail,
       lucidePackage,

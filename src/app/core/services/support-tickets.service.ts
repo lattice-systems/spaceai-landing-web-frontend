@@ -4,7 +4,9 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PagedResult } from '../models/paged-result.model';
 import {
+  CreateSupportTicketMessageRequest,
   CreateSupportTicketRequest,
+  SupportTicketMessageResponse,
   SupportTicketResponse,
   SupportTicketsQuery,
 } from '../models/support-ticket.model';
@@ -35,5 +37,20 @@ export class SupportTicketsService {
 
   create(request: CreateSupportTicketRequest): Observable<SupportTicketResponse> {
     return this.http.post<SupportTicketResponse>(`${environment.apiUrl}/support-tickets`, request);
+  }
+
+  getMessages(id: string): Observable<SupportTicketMessageResponse[]> {
+    return this.http.get<SupportTicketMessageResponse[]>(`${environment.apiUrl}/support-tickets/${id}/messages`);
+  }
+
+  addMessage(id: string, request: CreateSupportTicketMessageRequest): Observable<SupportTicketMessageResponse> {
+    return this.http.post<SupportTicketMessageResponse>(
+      `${environment.apiUrl}/support-tickets/${id}/messages`,
+      request,
+    );
+  }
+
+  updateStatus(id: string, status: string): Observable<SupportTicketResponse> {
+    return this.http.put<SupportTicketResponse>(`${environment.apiUrl}/support-tickets/${id}/status`, { status });
   }
 }

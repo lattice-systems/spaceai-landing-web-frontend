@@ -1,9 +1,9 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal, ViewChild } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideLifeBuoy, lucidePlus, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
+import { lucideLifeBuoy, lucidePlus, lucideSend, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -12,7 +12,7 @@ import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { AuthService } from '../../../core/services/auth.service';
-import { SupportTicketResponse } from '../../../core/models/support-ticket.model';
+import { SupportTicketMessageResponse, SupportTicketResponse } from '../../../core/models/support-ticket.model';
 import { SupportTicketsService } from '../../../core/services/support-tickets.service';
 import { StatusChip } from '../../../shared/status-chip/status-chip';
 
@@ -31,7 +31,7 @@ import { StatusChip } from '../../../shared/status-chip/status-chip';
     HlmDialogImports,
     StatusChip,
   ],
-  providers: [provideIcons({ lucideLifeBuoy, lucidePlus, lucideTriangleAlert, lucideX })],
+  providers: [provideIcons({ lucideLifeBuoy, lucidePlus, lucideSend, lucideTriangleAlert, lucideX })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -147,6 +147,42 @@ import { StatusChip } from '../../../shared/status-chip/status-chip';
           <p class="text-foreground border-border bg-muted/30 rounded-lg border p-3 text-sm leading-6 whitespace-pre-line">
             {{ selectedTicket()?.description }}
           </p>
+
+          <div class="flex flex-col gap-2">
+            <p class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Seguimiento</p>
+            <div class="flex max-h-56 flex-col gap-2 overflow-y-auto">
+              @for (message of messages(); track message.id) {
+                <div
+                  class="rounded-lg border p-2.5 text-sm"
+                  [class]="message.senderRole === 'Admin'
+                    ? 'border-border bg-muted/40'
+                    : 'border-primary/20 bg-primary/5'"
+                >
+                  <p class="text-foreground/90 whitespace-pre-line">{{ message.body }}</p>
+                  <p class="text-muted-foreground mt-1 text-xs">
+                    {{ message.senderRole === 'Admin' ? 'Soporte SpaceIA' : 'Tú' }} ·
+                    {{ message.createdAt | date: 'short' }}
+                  </p>
+                </div>
+              } @empty {
+                <p class="text-muted-foreground text-xs">Sin mensajes todavía.</p>
+              }
+            </div>
+            <form class="flex gap-2" (ngSubmit)="submitMessage()">
+              <input
+                hlmInput
+                class="flex-1"
+                placeholder="Escribe un mensaje de seguimiento…"
+                [formControl]="messageControl"
+              />
+              <button hlmBtn type="submit" size="icon" [disabled]="sendingMessage() || !messageControl.value?.trim()">
+                <ng-icon name="lucideSend" />
+              </button>
+            </form>
+            @if (messageError()) {
+              <p class="text-destructive text-xs">{{ messageError() }}</p>
+            }
+          </div>
         </div>
         <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
           <button hlmBtn type="button" variant="outline" hlmDialogClose>Cerrar</button>
@@ -165,9 +201,13 @@ export class ClientSupport {
 
   protected readonly tickets = signal<SupportTicketResponse[]>([]);
   protected readonly selectedTicket = signal<SupportTicketResponse | null>(null);
+  protected readonly messages = signal<SupportTicketMessageResponse[]>([]);
   protected readonly submitting = signal(false);
+  protected readonly sendingMessage = signal(false);
   protected readonly formError = signal<string | null>(null);
+  protected readonly messageError = signal<string | null>(null);
   protected readonly actionError = signal<string | null>(null);
+  protected readonly messageControl = new FormControl('', { nonNullable: true });
 
   protected readonly form = this.fb.nonNullable.group({
     subject: ['', Validators.required],
@@ -205,7 +245,35 @@ export class ClientSupport {
 
   protected openDetail(ticket: SupportTicketResponse): void {
     this.selectedTicket.set(ticket);
+    this.messages.set([]);
+    this.messageError.set(null);
+    this.messageControl.reset('');
     this.detailDialogRef.open();
+    this.supportTicketsService.getMessages(ticket.id).subscribe({
+      next: (data) => this.messages.set(data),
+      error: () => this.messageError.set('No se pudo cargar el seguimiento.'),
+    });
+  }
+
+  protected submitMessage(): void {
+    const ticket = this.selectedTicket();
+    const body = this.messageControl.value.trim();
+    if (!ticket || !body) return;
+
+    this.sendingMessage.set(true);
+    this.messageError.set(null);
+
+    this.supportTicketsService.addMessage(ticket.id, { body }).subscribe({
+      next: (message) => {
+        this.sendingMessage.set(false);
+        this.messages.update((current) => [...current, message]);
+        this.messageControl.reset('');
+      },
+      error: (err: HttpErrorResponse) => {
+        this.sendingMessage.set(false);
+        this.messageError.set(this.extractError(err, 'No se pudo enviar el mensaje.'));
+      },
+    });
   }
 
   protected submitCreate(): void {

@@ -40,12 +40,11 @@ const ACTIVITY_ICONS: Record<string, { icon: string; chip: string }> = {
   Soporte: { icon: 'lucideLifeBuoy', chip: '--chip-sky' },
 };
 
-// Soporte no tiene pantalla admin propia todavía (solo lo gestiona el cliente en su
-// portal) — no se inventa una ruta para esa categoría, se omite el botón de acción.
 const ACTIVITY_ROUTES: Record<string, string> = {
   Comercial: '/admin/cotizaciones',
   Contacto: '/admin/mensajes',
   Reseña: '/admin/resenas',
+  Soporte: '/admin/soporte',
 };
 
 @Component({

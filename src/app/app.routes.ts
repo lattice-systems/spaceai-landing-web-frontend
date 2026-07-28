@@ -84,6 +84,11 @@ export const routes: Routes = [
           import('./features/admin/admin-messages/admin-messages').then((m) => m.AdminMessages),
       },
       {
+        path: 'soporte',
+        loadComponent: () =>
+          import('./features/admin/admin-support/admin-support').then((m) => m.AdminSupport),
+      },
+      {
         path: 'materiales',
         loadComponent: () =>
           import('./features/admin/admin-materials/admin-materials').then((m) => m.AdminMaterials),
