@@ -184,17 +184,26 @@ type StockFilter = 'all' | 'low';
                         {{ material.currentStock }} (mín. {{ material.minimumStock }})
                       </span>
                       @if (isLowStock(material)) {
-                        <span hlmBadge variant="destructive" class="font-normal">Stock bajo</span>
+                        <span
+                          hlmBadge
+                          variant="outline"
+                          class="gap-1.5 font-normal"
+                          style="background: color-mix(in oklch, var(--chip-amber) 16%, transparent); color: var(--chip-amber); border-color: color-mix(in oklch, var(--chip-amber) 35%, transparent)"
+                        >
+                          Stock bajo
+                        </span>
                       }
                     </div>
                   </td>
                   <td hlmTd>
-                    <span hlmBadge variant="outline" class="gap-1.5 font-normal">
-                      <span
-                        class="size-1.5 rounded-full"
-                        [class.bg-primary]="material.isActive"
-                        [class.bg-muted-foreground]="!material.isActive"
-                      ></span>
+                    <span
+                      hlmBadge
+                      variant="outline"
+                      class="gap-1.5 font-normal"
+                      [style.background]="material.isActive ? 'color-mix(in oklch, var(--chip-emerald) 14%, transparent)' : null"
+                      [style.color]="material.isActive ? 'var(--chip-emerald)' : null"
+                      [style.border-color]="material.isActive ? 'color-mix(in oklch, var(--chip-emerald) 35%, transparent)' : null"
+                    >
                       {{ material.isActive ? 'Activo' : 'Inactivo' }}
                     </span>
                   </td>
