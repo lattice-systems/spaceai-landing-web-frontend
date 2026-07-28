@@ -18,6 +18,7 @@ import { HlmTableImports } from '@spartan-ng/helm/table';
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { QuoteResponse } from '../../../core/models/quote.model';
 import { QuotesService } from '../../../core/services/quotes.service';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
 type DecisionKind = 'approve' | 'reject';
@@ -47,6 +48,7 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
     HlmDropdownMenuImports,
     HlmDialogImports,
     HlmPaginationImports,
+    StatusChip,
   ],
   providers: [provideIcons({ lucideEllipsis, lucideQuote, lucideSearch, lucideTriangleAlert, lucideX })],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -137,16 +139,7 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
                   </td>
                   <td hlmTd>{{ quote.total | currency: 'USD' }}</td>
                   <td hlmTd>
-                    <span
-                      hlmBadge
-                      variant="outline"
-                      class="gap-1.5 font-normal"
-                      [style.background]="statusChipBg(quote.status)"
-                      [style.color]="statusChipColor(quote.status)"
-                      [style.border-color]="statusChipBorder(quote.status)"
-                    >
-                      {{ statusLabel(quote.status) }}
-                    </span>
+                    <app-status-chip [label]="statusLabel(quote.status)" [chip]="statusChip(quote.status)" />
                   </td>
                   <td hlmTd class="text-muted-foreground">{{ quote.createdAt | date: 'mediumDate' }}</td>
                   <td hlmTd class="text-right">
@@ -227,16 +220,10 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
         </hlm-dialog-header>
         <div class="grid gap-4 py-2">
           <div class="flex flex-wrap items-center gap-2">
-            <span
-              hlmBadge
-              variant="outline"
-              class="gap-1.5 font-normal"
-              [style.background]="statusChipBg(selectedQuote()?.status ?? '')"
-              [style.color]="statusChipColor(selectedQuote()?.status ?? '')"
-              [style.border-color]="statusChipBorder(selectedQuote()?.status ?? '')"
-            >
-              {{ statusLabel(selectedQuote()?.status ?? '') }}
-            </span>
+            <app-status-chip
+              [label]="statusLabel(selectedQuote()?.status ?? '')"
+              [chip]="statusChip(selectedQuote()?.status ?? '')"
+            />
             @if (selectedQuote()?.institutionType) {
               <span hlmBadge variant="secondary" class="font-normal">{{ selectedQuote()?.institutionType }}</span>
             }
@@ -384,26 +371,11 @@ export class AdminQuotes {
     return 'Pendiente';
   }
 
-  private statusChip(status: string): string | null {
+  protected statusChip(status: string): string | null {
     if (status === 'Approved') return '--chip-emerald';
     if (status === 'Rejected') return '--chip-rose';
     if (status === 'Pending') return '--chip-amber';
     return null;
-  }
-
-  protected statusChipBg(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
-  }
-
-  protected statusChipColor(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `var(${chip})` : null;
-  }
-
-  protected statusChipBorder(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
   }
 
   protected onSearchInput(event: Event): void {

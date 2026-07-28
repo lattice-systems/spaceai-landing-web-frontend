@@ -35,6 +35,7 @@ import { PagedResult } from '../../../core/models/paged-result.model';
 import { RoleResponse } from '../../../core/models/role-catalog.model';
 import { Role } from '../../../core/models/role.model';
 import { UserResponse } from '../../../core/models/user.model';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 
@@ -58,6 +59,7 @@ type StatusFilter = 'all' | 'active' | 'inactive';
     HlmDialogImports,
     HlmAlertDialogImports,
     HlmPaginationImports,
+    StatusChip,
   ],
   providers: [
     provideIcons({
@@ -187,18 +189,10 @@ type StatusFilter = 'all' | 'active' | 'inactive';
                     <td hlmTd class="text-muted-foreground">{{ user.institutionName ?? '—' }}</td>
                   }
                   <td hlmTd>
-                    <span
-                      hlmBadge
-                      variant="outline"
-                      class="gap-1.5 font-normal"
-                    >
-                      <span
-                        class="size-1.5 rounded-full"
-                        [class.bg-primary]="user.isActive"
-                        [class.bg-muted-foreground]="!user.isActive"
-                      ></span>
-                      {{ user.isActive ? 'Activo' : 'Inactivo' }}
-                    </span>
+                    <app-status-chip
+                      [label]="user.isActive ? 'Activo' : 'Inactivo'"
+                      [chip]="user.isActive ? '--chip-emerald' : null"
+                    />
                   </td>
                   <td hlmTd class="text-muted-foreground">{{ user.createdAt | date: 'dd MMM yyyy' }}</td>
                   <td hlmTd class="text-right">

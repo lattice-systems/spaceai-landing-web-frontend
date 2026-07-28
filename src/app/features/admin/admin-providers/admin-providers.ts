@@ -27,6 +27,7 @@ import { HlmTableImports } from '@spartan-ng/helm/table';
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { ProviderResponse } from '../../../core/models/provider.model';
 import { ProvidersService } from '../../../core/services/providers.service';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 
@@ -51,6 +52,7 @@ const PROVIDER_TYPES = ['Hardware', 'Software', 'Servicios', 'Logística', 'Otro
     HlmDialogImports,
     HlmAlertDialogImports,
     HlmPaginationImports,
+    StatusChip,
   ],
   providers: [
     provideIcons({
@@ -194,14 +196,10 @@ const PROVIDER_TYPES = ['Hardware', 'Software', 'Servicios', 'Logística', 'Otro
                     <span hlmBadge variant="outline" class="font-normal">{{ provider.purchaseCount }}</span>
                   </td>
                   <td hlmTd>
-                    <span hlmBadge variant="outline" class="gap-1.5 font-normal">
-                      <span
-                        class="size-1.5 rounded-full"
-                        [class.bg-primary]="provider.isActive"
-                        [class.bg-muted-foreground]="!provider.isActive"
-                      ></span>
-                      {{ provider.isActive ? 'Activo' : 'Inactivo' }}
-                    </span>
+                    <app-status-chip
+                      [label]="provider.isActive ? 'Activo' : 'Inactivo'"
+                      [chip]="provider.isActive ? '--chip-emerald' : null"
+                    />
                   </td>
                   <td hlmTd class="text-right">
                     <button

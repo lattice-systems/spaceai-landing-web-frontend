@@ -25,6 +25,7 @@ import { HlmTableImports } from '@spartan-ng/helm/table';
 import { ContactMessageResponse } from '../../../core/models/contact-message.model';
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { ContactMessagesService } from '../../../core/services/contact-messages.service';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
 
@@ -43,6 +44,7 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
     HlmDropdownMenuImports,
     HlmDialogImports,
     HlmPaginationImports,
+    StatusChip,
   ],
   providers: [
     provideIcons({ lucideCheck, lucideCopy, lucideEllipsis, lucideMail, lucideSearch, lucideTriangleAlert, lucideX }),
@@ -154,16 +156,7 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
                     </button>
                   </td>
                   <td hlmTd>
-                    <span
-                      hlmBadge
-                      variant="outline"
-                      class="gap-1.5 font-normal"
-                      [style.background]="statusChipBg(msg.status)"
-                      [style.color]="statusChipColor(msg.status)"
-                      [style.border-color]="statusChipBorder(msg.status)"
-                    >
-                      {{ statusLabel(msg.status) }}
-                    </span>
+                    <app-status-chip [label]="statusLabel(msg.status)" [chip]="statusChip(msg.status)" />
                   </td>
                   <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ msg.createdAt | date: 'mediumDate' }}</td>
                   <td hlmTd class="text-right">
@@ -239,16 +232,10 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
         </hlm-dialog-header>
         <div class="grid gap-4 py-2">
           <div class="flex items-center gap-2">
-            <span
-              hlmBadge
-              variant="outline"
-              class="gap-1.5 font-normal"
-              [style.background]="statusChipBg(selectedMessage()?.status ?? '')"
-              [style.color]="statusChipColor(selectedMessage()?.status ?? '')"
-              [style.border-color]="statusChipBorder(selectedMessage()?.status ?? '')"
-            >
-              {{ statusLabel(selectedMessage()?.status ?? '') }}
-            </span>
+            <app-status-chip
+              [label]="statusLabel(selectedMessage()?.status ?? '')"
+              [chip]="statusChip(selectedMessage()?.status ?? '')"
+            />
             <span class="text-muted-foreground text-xs">{{ selectedMessage()?.createdAt | date: 'medium' }}</span>
           </div>
           <p class="text-foreground border-border bg-muted/30 rounded-lg border p-3 text-sm leading-6 whitespace-pre-line">
@@ -322,25 +309,10 @@ export class AdminMessages {
     return 'Pendiente';
   }
 
-  private statusChip(status: string): string | null {
+  protected statusChip(status: string): string | null {
     if (status === 'Answered') return '--chip-emerald';
     if (status === 'Pending') return '--chip-amber';
     return null;
-  }
-
-  protected statusChipBg(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
-  }
-
-  protected statusChipColor(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `var(${chip})` : null;
-  }
-
-  protected statusChipBorder(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
   }
 
   protected copyEmail(message: ContactMessageResponse): void {

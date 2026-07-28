@@ -32,6 +32,7 @@ import { ProductsService } from '../../../core/services/products.service';
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { ProductModuleResponse } from '../../../core/models/product-module.model';
 import { ProductResponse } from '../../../core/models/product.model';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 type CatalogTab = 'modules' | 'products';
@@ -56,6 +57,7 @@ type CatalogTab = 'modules' | 'products';
     HlmDialogImports,
     HlmAlertDialogImports,
     HlmPaginationImports,
+    StatusChip,
   ],
   providers: [
     provideIcons({
@@ -211,14 +213,10 @@ type CatalogTab = 'modules' | 'products';
                       </div>
                     </td>
                     <td hlmTd>
-                      <span hlmBadge variant="outline" class="gap-1.5 font-normal">
-                        <span
-                          class="size-1.5 rounded-full"
-                          [class.bg-primary]="module.isActive"
-                          [class.bg-muted-foreground]="!module.isActive"
-                        ></span>
-                        {{ module.isActive ? 'Activo' : 'Inactivo' }}
-                      </span>
+                      <app-status-chip
+                        [label]="module.isActive ? 'Activo' : 'Inactivo'"
+                        [chip]="module.isActive ? '--chip-emerald' : null"
+                      />
                     </td>
                     <td hlmTd class="text-right">
                       <button
@@ -338,14 +336,10 @@ type CatalogTab = 'modules' | 'products';
                       </div>
                     </td>
                     <td hlmTd>
-                      <span hlmBadge variant="outline" class="gap-1.5 font-normal">
-                        <span
-                          class="size-1.5 rounded-full"
-                          [class.bg-primary]="product.isActive"
-                          [class.bg-muted-foreground]="!product.isActive"
-                        ></span>
-                        {{ product.isActive ? 'Activo' : 'Inactivo' }}
-                      </span>
+                      <app-status-chip
+                        [label]="product.isActive ? 'Activo' : 'Inactivo'"
+                        [chip]="product.isActive ? '--chip-emerald' : null"
+                      />
                     </td>
                     <td hlmTd class="text-muted-foreground">{{ product.updatedAt | date: 'dd MMM yyyy' }}</td>
                     <td hlmTd>

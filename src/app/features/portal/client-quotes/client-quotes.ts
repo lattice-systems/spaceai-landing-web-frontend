@@ -10,6 +10,7 @@ import { HlmDialogImports, HlmDialog } from '@spartan-ng/helm/dialog';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { QuoteResponse } from '../../../core/models/quote.model';
 import { QuotesService } from '../../../core/services/quotes.service';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
   { key: 'studentCount', label: 'Estudiantes' },
@@ -21,7 +22,17 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
 
 @Component({
   selector: 'app-client-quotes',
-  imports: [NgIcon, DatePipe, CurrencyPipe, HlmButtonImports, HlmCardImports, HlmBadgeImports, HlmTableImports, HlmDialogImports],
+  imports: [
+    NgIcon,
+    DatePipe,
+    CurrencyPipe,
+    HlmButtonImports,
+    HlmCardImports,
+    HlmBadgeImports,
+    HlmTableImports,
+    HlmDialogImports,
+    StatusChip,
+  ],
   providers: [provideIcons({ lucideEllipsis, lucideQuote })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -57,16 +68,7 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
                   <td hlmTd class="text-foreground font-medium">{{ quote.institutionName }}</td>
                   <td hlmTd>{{ quote.total | currency: 'USD' }}</td>
                   <td hlmTd>
-                    <span
-                      hlmBadge
-                      variant="outline"
-                      class="gap-1.5 font-normal"
-                      [style.background]="statusChipBg(quote.status)"
-                      [style.color]="statusChipColor(quote.status)"
-                      [style.border-color]="statusChipBorder(quote.status)"
-                    >
-                      {{ statusLabel(quote.status) }}
-                    </span>
+                    <app-status-chip [label]="statusLabel(quote.status)" [chip]="statusChip(quote.status)" />
                   </td>
                   <td hlmTd class="text-muted-foreground">{{ quote.createdAt | date: 'mediumDate' }}</td>
                   <td hlmTd class="text-right">
@@ -169,26 +171,11 @@ export class ClientQuotes {
     return 'Pendiente';
   }
 
-  private statusChip(status: string): string | null {
+  protected statusChip(status: string): string | null {
     if (status === 'Approved') return '--chip-emerald';
     if (status === 'Rejected') return '--chip-rose';
     if (status === 'Pending') return '--chip-amber';
     return null;
-  }
-
-  protected statusChipBg(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
-  }
-
-  protected statusChipColor(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `var(${chip})` : null;
-  }
-
-  protected statusChipBorder(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
   }
 
   protected openDetail(quote: QuoteResponse): void {

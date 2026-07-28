@@ -29,6 +29,7 @@ import { HlmTableImports } from '@spartan-ng/helm/table';
 import { MaterialsService } from '../../../core/services/materials.service';
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { MaterialResponse } from '../../../core/models/material.model';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 type StockFilter = 'all' | 'low';
@@ -52,6 +53,7 @@ type StockFilter = 'all' | 'low';
     HlmDialogImports,
     HlmAlertDialogImports,
     HlmPaginationImports,
+    StatusChip,
   ],
   providers: [
     provideIcons({
@@ -184,28 +186,15 @@ type StockFilter = 'all' | 'low';
                         {{ material.currentStock }} (mín. {{ material.minimumStock }})
                       </span>
                       @if (isLowStock(material)) {
-                        <span
-                          hlmBadge
-                          variant="outline"
-                          class="gap-1.5 font-normal"
-                          style="background: color-mix(in oklch, var(--chip-amber) 16%, transparent); color: var(--chip-amber); border-color: color-mix(in oklch, var(--chip-amber) 35%, transparent)"
-                        >
-                          Stock bajo
-                        </span>
+                        <app-status-chip label="Stock bajo" chip="--chip-amber" />
                       }
                     </div>
                   </td>
                   <td hlmTd>
-                    <span
-                      hlmBadge
-                      variant="outline"
-                      class="gap-1.5 font-normal"
-                      [style.background]="material.isActive ? 'color-mix(in oklch, var(--chip-emerald) 14%, transparent)' : null"
-                      [style.color]="material.isActive ? 'var(--chip-emerald)' : null"
-                      [style.border-color]="material.isActive ? 'color-mix(in oklch, var(--chip-emerald) 35%, transparent)' : null"
-                    >
-                      {{ material.isActive ? 'Activo' : 'Inactivo' }}
-                    </span>
+                    <app-status-chip
+                      [label]="material.isActive ? 'Activo' : 'Inactivo'"
+                      [chip]="material.isActive ? '--chip-emerald' : null"
+                    />
                   </td>
                   <td hlmTd class="text-right">
                     <button

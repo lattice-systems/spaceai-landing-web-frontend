@@ -14,6 +14,7 @@ import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { AuthService } from '../../../core/services/auth.service';
 import { SupportTicketResponse } from '../../../core/models/support-ticket.model';
 import { SupportTicketsService } from '../../../core/services/support-tickets.service';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 @Component({
   selector: 'app-client-support',
@@ -28,6 +29,7 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
     HlmNativeSelectImports,
     HlmBadgeImports,
     HlmDialogImports,
+    StatusChip,
   ],
   providers: [provideIcons({ lucideLifeBuoy, lucidePlus, lucideTriangleAlert, lucideX })],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -78,16 +80,7 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
                   <p class="text-muted-foreground mt-2 text-xs">{{ ticket.createdAt | date: 'mediumDate' }}</p>
                 </div>
                 <div class="flex flex-col items-end gap-1.5">
-                  <span
-                    hlmBadge
-                    variant="outline"
-                    class="gap-1.5 font-normal"
-                    [style.background]="statusChipBg(ticket.status)"
-                    [style.color]="statusChipColor(ticket.status)"
-                    [style.border-color]="statusChipBorder(ticket.status)"
-                  >
-                    {{ statusLabel(ticket.status) }}
-                  </span>
+                  <app-status-chip [label]="statusLabel(ticket.status)" [chip]="statusChip(ticket.status)" />
                   <span hlmBadge variant="outline" class="font-normal">{{ priorityLabel(ticket.priority) }}</span>
                 </div>
               </div>
@@ -145,16 +138,10 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
         </hlm-dialog-header>
         <div class="grid gap-3 py-2">
           <div class="flex gap-2">
-            <span
-              hlmBadge
-              variant="outline"
-              class="gap-1.5 font-normal"
-              [style.background]="statusChipBg(selectedTicket()?.status ?? '')"
-              [style.color]="statusChipColor(selectedTicket()?.status ?? '')"
-              [style.border-color]="statusChipBorder(selectedTicket()?.status ?? '')"
-            >
-              {{ statusLabel(selectedTicket()?.status ?? '') }}
-            </span>
+            <app-status-chip
+              [label]="statusLabel(selectedTicket()?.status ?? '')"
+              [chip]="statusChip(selectedTicket()?.status ?? '')"
+            />
             <span hlmBadge variant="outline" class="font-normal">{{ priorityLabel(selectedTicket()?.priority ?? '') }}</span>
           </div>
           <p class="text-foreground border-border bg-muted/30 rounded-lg border p-3 text-sm leading-6 whitespace-pre-line">
@@ -198,25 +185,10 @@ export class ClientSupport {
     return 'Abierto';
   }
 
-  private statusChip(status: string): string | null {
+  protected statusChip(status: string): string | null {
     if (status === 'InProgress') return '--chip-amber';
     if (status === 'Open') return '--chip-sky';
     return null;
-  }
-
-  protected statusChipBg(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
-  }
-
-  protected statusChipColor(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `var(${chip})` : null;
-  }
-
-  protected statusChipBorder(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
   }
 
   protected priorityLabel(priority: string): string {

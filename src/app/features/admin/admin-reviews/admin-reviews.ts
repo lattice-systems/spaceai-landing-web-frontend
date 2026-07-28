@@ -23,6 +23,7 @@ import { HlmTableImports } from '@spartan-ng/helm/table';
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { ReviewResponse } from '../../../core/models/review.model';
 import { ReviewsService } from '../../../core/services/reviews.service';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
 
@@ -40,6 +41,7 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
     HlmCheckboxImports,
     HlmPaginationImports,
     HlmDialogImports,
+    StatusChip,
   ],
   providers: [
     provideIcons({ lucideBuilding2, lucideCheck, lucideSearch, lucideStar, lucideTriangleAlert, lucideX }),
@@ -154,16 +156,7 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
                     </button>
                   </td>
                   <td hlmTd class="whitespace-nowrap">
-                    <span
-                      hlmBadge
-                      variant="outline"
-                      class="gap-1.5 font-normal"
-                      [style.background]="statusChipBg(review.status)"
-                      [style.color]="statusChipColor(review.status)"
-                      [style.border-color]="statusChipBorder(review.status)"
-                    >
-                      {{ statusLabel(review.status) }}
-                    </span>
+                    <app-status-chip [label]="statusLabel(review.status)" [chip]="statusChip(review.status)" />
                   </td>
                   <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ review.createdAt | date: 'mediumDate' }}</td>
                   <td hlmTd class="whitespace-nowrap">
@@ -209,16 +202,10 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
         </hlm-dialog-header>
         <div class="grid gap-4 py-2">
           <div class="flex flex-wrap items-center gap-3">
-            <span
-              hlmBadge
-              variant="outline"
-              class="gap-1.5 font-normal"
-              [style.background]="statusChipBg(selectedReview()?.status ?? '')"
-              [style.color]="statusChipColor(selectedReview()?.status ?? '')"
-              [style.border-color]="statusChipBorder(selectedReview()?.status ?? '')"
-            >
-              {{ statusLabel(selectedReview()?.status ?? '') }}
-            </span>
+            <app-status-chip
+              [label]="statusLabel(selectedReview()?.status ?? '')"
+              [chip]="statusChip(selectedReview()?.status ?? '')"
+            />
             <span class="inline-flex items-center gap-0.5" style="color: var(--chip-amber)">
               @for (s of starsFor(selectedReview()?.rating ?? 0); track $index) {
                 <ng-icon name="lucideStar" [class.icon-fill]="s" [class.opacity-30]="!s" class="text-base" />
@@ -298,26 +285,11 @@ export class AdminReviews {
     return 'Pendiente';
   }
 
-  private statusChip(status: string): string | null {
+  protected statusChip(status: string): string | null {
     if (status === 'Approved') return '--chip-emerald';
     if (status === 'Rejected') return '--chip-rose';
     if (status === 'Pending') return '--chip-amber';
     return null;
-  }
-
-  protected statusChipBg(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
-  }
-
-  protected statusChipColor(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `var(${chip})` : null;
-  }
-
-  protected statusChipBorder(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
   }
 
   protected starsFor(rating: number): boolean[] {

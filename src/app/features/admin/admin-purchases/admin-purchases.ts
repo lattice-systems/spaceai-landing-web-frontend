@@ -27,11 +27,13 @@ import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmTableImports } from '@spartan-ng/helm/table';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { ProviderResponse } from '../../../core/models/provider.model';
 import { PurchaseItemResponse, PurchaseResponse } from '../../../core/models/purchase.model';
 import { ProvidersService } from '../../../core/services/providers.service';
 import { PurchasesService } from '../../../core/services/purchases.service';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 type StatusFilter = 'all' | 'Pending' | 'PartiallyReceived' | 'Received' | 'Cancelled';
 type BoardStatus = 'Pending' | 'PartiallyReceived' | 'Received' | 'Cancelled';
@@ -63,6 +65,8 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
     HlmDialogImports,
     HlmAlertDialogImports,
     HlmPaginationImports,
+    HlmTabsImports,
+    StatusChip,
   ],
   providers: [
     provideIcons({
@@ -99,26 +103,18 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
         </div>
 
         <div class="flex items-center gap-2">
-          <div class="border-border bg-muted/40 flex items-center gap-0.5 rounded-lg border p-0.5">
-            <button
-              hlmBtn
-              [variant]="view() === 'table' ? 'default' : 'ghost'"
-              size="sm"
-              (click)="setView('table')"
-            >
-              <ng-icon name="lucideList" class="mr-1.5" />
-              Tabla
-            </button>
-            <button
-              hlmBtn
-              [variant]="view() === 'board' ? 'default' : 'ghost'"
-              size="sm"
-              (click)="setView('board')"
-            >
-              <ng-icon name="lucideLayoutGrid" class="mr-1.5" />
-              Tablero
-            </button>
-          </div>
+          <hlm-tabs [tab]="view()" (tabActivated)="setView($event)">
+            <hlm-tabs-list aria-label="Vista de compras">
+              <button hlmTabsTrigger="table">
+                <ng-icon name="lucideList" class="mr-1.5" />
+                Tabla
+              </button>
+              <button hlmTabsTrigger="board">
+                <ng-icon name="lucideLayoutGrid" class="mr-1.5" />
+                Tablero
+              </button>
+            </hlm-tabs-list>
+          </hlm-tabs>
           <button hlmBtn size="sm" (click)="openCreate()">
             <ng-icon name="lucidePlus" class="mr-1" />
             Nueva compra
@@ -196,16 +192,7 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
                   <td hlmTd class="text-muted-foreground">{{ purchase.purchaseDate | date: 'mediumDate' }}</td>
                   <td hlmTd>{{ purchase.total | currency: 'USD' }}</td>
                   <td hlmTd>
-                    <span
-                      hlmBadge
-                      variant="outline"
-                      class="gap-1.5 font-normal"
-                      [style.background]="statusChipBg(purchase.status)"
-                      [style.color]="statusChipColor(purchase.status)"
-                      [style.border-color]="statusChipBorder(purchase.status)"
-                    >
-                      {{ statusLabel(purchase.status) }}
-                    </span>
+                    <app-status-chip [label]="statusLabel(purchase.status)" [chip]="statusChip(purchase.status)" />
                   </td>
                   <td hlmTd class="text-right">
                     <div class="flex items-center justify-end gap-1">
@@ -279,7 +266,7 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
               <div class="flex items-center gap-2 px-1">
                 <span
                   class="size-2 shrink-0 rounded-full"
-                  [style.background]="statusChipColor(col.status) ?? 'var(--muted-foreground)'"
+                  [style.background]="statusChip(col.status) ? 'var(' + statusChip(col.status) + ')' : 'var(--muted-foreground)'"
                 ></span>
                 <h3 class="text-foreground text-sm font-medium">{{ col.label }}</h3>
                 <span class="text-muted-foreground text-xs">{{ boardData()[col.status].length }}</span>
@@ -661,26 +648,11 @@ export class AdminPurchases {
     return 'Pendiente';
   }
 
-  private statusChip(status: string): string | null {
+  protected statusChip(status: string): string | null {
     if (status === 'Received') return '--chip-emerald';
     if (status === 'PartiallyReceived') return '--chip-sky';
     if (status === 'Pending') return '--chip-amber';
     return null;
-  }
-
-  protected statusChipBg(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
-  }
-
-  protected statusChipColor(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `var(${chip})` : null;
-  }
-
-  protected statusChipBorder(status: string): string | null {
-    const chip = this.statusChip(status);
-    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
   }
 
   protected canReceive(status: string): boolean {
@@ -772,8 +744,8 @@ export class AdminPurchases {
     return err.error?.message || fallback;
   }
 
-  protected setView(view: ViewMode): void {
-    this.view.set(view);
+  protected setView(view: string): void {
+    this.view.set(view as ViewMode);
     if (view === 'board') this.loadBoard();
   }
 
