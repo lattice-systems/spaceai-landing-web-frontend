@@ -1,4 +1,5 @@
 import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -10,8 +11,10 @@ import {
   lucidePlus,
   lucideSearch,
   lucideTrash2,
+  lucideTriangleAlert,
   lucideUserCheck,
   lucideUserX,
+  lucideX,
 } from '@ng-icons/lucide';
 import { HlmAlertDialogImports, HlmAlertDialog } from '@spartan-ng/helm/alert-dialog';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
@@ -70,8 +73,10 @@ type StatusFilter = 'all' | 'active' | 'inactive';
       lucidePlus,
       lucideSearch,
       lucideTrash2,
+      lucideTriangleAlert,
       lucideUserCheck,
       lucideUserX,
+      lucideX,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -124,6 +129,21 @@ type StatusFilter = 'all' | 'active' | 'inactive';
           <option value="inactive" hlmNativeSelectOption>Inactivos</option>
         </hlm-native-select>
       </div>
+
+      @if (actionError()) {
+        <div class="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border p-3 text-sm">
+          <ng-icon name="lucideTriangleAlert" class="mt-0.5 shrink-0 text-base" />
+          <p class="flex-1">{{ actionError() }}</p>
+          <button
+            type="button"
+            class="text-destructive/70 hover:text-destructive"
+            aria-label="Cerrar"
+            (click)="actionError.set(null)"
+          >
+            <ng-icon name="lucideX" />
+          </button>
+        </div>
+      }
 
       @if (selectedIds().size > 0) {
         <div class="bg-muted/50 border-border flex items-center gap-3 rounded-lg border p-3">
@@ -457,6 +477,7 @@ export class AdminUsers {
   protected readonly selectedUser = signal<UserResponse | null>(null);
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
+  protected readonly actionError = signal<string | null>(null);
   protected readonly currentUserId = computed(() => this.authService.user()?.id ?? null);
 
   protected readonly allSelected = computed(() => {
@@ -657,36 +678,64 @@ export class AdminUsers {
   }
 
   protected activateOne(user: UserResponse): void {
-    this.usersService.activate(user.id).subscribe(() => this.reload());
+    this.actionError.set(null);
+    this.usersService.activate(user.id).subscribe({
+      next: () => this.reload(),
+      error: (err: HttpErrorResponse) => this.actionError.set(this.extractError(err, 'No se pudo activar el usuario.')),
+    });
   }
 
   protected deactivateOne(user: UserResponse): void {
-    this.usersService.deactivate(user.id).subscribe(() => this.reload());
+    this.actionError.set(null);
+    this.usersService.deactivate(user.id).subscribe({
+      next: () => this.reload(),
+      error: (err: HttpErrorResponse) =>
+        this.actionError.set(this.extractError(err, 'No se pudo desactivar el usuario.')),
+    });
   }
 
   protected confirmDeleteOne(): void {
     const user = this.selectedUser();
     if (!user) return;
-    this.usersService.remove(user.id).subscribe(() => {
-      this.deleteConfirmRef.close();
-      this.reload();
+    this.actionError.set(null);
+    this.usersService.remove(user.id).subscribe({
+      next: () => {
+        this.deleteConfirmRef.close();
+        this.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.deleteConfirmRef.close();
+        this.actionError.set(this.extractError(err, 'No se pudo eliminar el usuario.'));
+      },
     });
   }
 
   protected confirmBulkDeactivate(): void {
-    this.usersService.bulkSetStatus(Array.from(this.selectedIds()), false).subscribe(() => {
+    this.usersService.bulkSetStatus(Array.from(this.selectedIds()), false).subscribe((result) => {
       this.bulkDeactivateConfirmRef.close();
       this.selectedIds.set(new Set());
+      this.reportBulkResult(result.affected, result.skipped);
       this.reload();
     });
   }
 
   protected confirmBulkDelete(): void {
-    this.usersService.bulkDelete(Array.from(this.selectedIds())).subscribe(() => {
+    this.usersService.bulkDelete(Array.from(this.selectedIds())).subscribe((result) => {
       this.bulkDeleteConfirmRef.close();
       this.selectedIds.set(new Set());
+      this.reportBulkResult(result.affected, result.skipped);
       this.reload();
     });
+  }
+
+  private reportBulkResult(affected: number, skipped: string[]): void {
+    this.actionError.set(skipped.length > 0 ? `${affected} aplicados. Omitidos: ${skipped.join(' ')}` : null);
+  }
+
+  private extractError(err: HttpErrorResponse, fallback: string): string {
+    const errors = err.error?.errors as string[] | undefined;
+    if (errors?.length) return errors.join(' ');
+    return err.error?.message || fallback;
   }
 
   protected initialsOf(user: UserResponse): string {

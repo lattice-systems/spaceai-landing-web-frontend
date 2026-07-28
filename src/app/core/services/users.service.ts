@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { BulkAffectedResult } from '../models/material.model';
 import { PagedResult } from '../models/paged-result.model';
 import {
   AdminResetPasswordRequest,
@@ -57,12 +58,12 @@ export class UsersService {
     return this.http.delete<void>(`${environment.apiUrl}/users/${id}`);
   }
 
-  bulkSetStatus(ids: string[], isActive: boolean): Observable<void> {
-    return this.http.post<void>(`${environment.apiUrl}/users/bulk-status`, { ids, isActive });
+  bulkSetStatus(ids: string[], isActive: boolean): Observable<BulkAffectedResult> {
+    return this.http.post<BulkAffectedResult>(`${environment.apiUrl}/users/bulk-status`, { ids, isActive });
   }
 
-  bulkDelete(ids: string[]): Observable<void> {
-    return this.http.post<void>(`${environment.apiUrl}/users/bulk-delete`, { ids });
+  bulkDelete(ids: string[]): Observable<BulkAffectedResult> {
+    return this.http.post<BulkAffectedResult>(`${environment.apiUrl}/users/bulk-delete`, { ids });
   }
 
   updateMe(request: UpdateUserProfileRequest): Observable<UserResponse> {
