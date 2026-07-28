@@ -96,7 +96,7 @@ export class ClientSection {
   );
 
   private readonly quotes = toSignal(
-    this.section === 'cotizaciones' ? this.quotesService.list() : of([]),
+    this.section === 'cotizaciones' ? this.quotesService.listAll() : of([]),
     { initialValue: [] },
   );
 

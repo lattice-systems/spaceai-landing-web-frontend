@@ -101,7 +101,7 @@ export class ClientDashboard {
 
   private readonly documents = toSignal(this.documentsService.list(), { initialValue: [] });
 
-  private readonly quotes = toSignal(this.quotesService.list(), { initialValue: [] });
+  private readonly quotes = toSignal(this.quotesService.listAll(), { initialValue: [] });
 
   private readonly tickets = toSignal(this.supportTicketsService.list(), { initialValue: [] });
 
