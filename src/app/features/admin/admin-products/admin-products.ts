@@ -84,7 +84,7 @@ type CatalogTab = 'modules' | 'products';
           <div>
             <h1 class="text-foreground text-xl font-semibold tracking-tight">Catálogo</h1>
             <p class="text-muted-foreground text-sm">
-              Módulos: lo que se cotiza y se vende. Productos: la categoría que los agrupa.
+              Los módulos son lo que se vende. Los productos son solo la categoría que los agrupa.
             </p>
           </div>
         </div>

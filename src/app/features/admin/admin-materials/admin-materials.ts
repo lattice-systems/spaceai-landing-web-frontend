@@ -79,7 +79,7 @@ type StockFilter = 'all' | 'low';
           <div>
             <h1 class="text-foreground text-xl font-semibold tracking-tight">Materia prima</h1>
             <p class="text-muted-foreground text-sm">
-              Catálogo de materiales con su costo unitario — base del costeo de cada módulo.
+              Costo unitario de cada material. De aquí sale el precio de venta de los módulos.
             </p>
           </div>
         </div>

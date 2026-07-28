@@ -30,8 +30,7 @@ import { ReviewsService } from '../../../core/services/reviews.service';
         <p class="text-muted-foreground text-sm">Portal cliente</p>
         <h1 class="text-foreground mt-2 text-2xl font-semibold tracking-normal">Opiniones</h1>
         <p class="text-muted-foreground mt-3 max-w-2xl text-sm leading-6">
-          Deja tu opinión sobre el producto adquirido. Se publica en el sitio público una vez
-          aprobada por el equipo de SpaceIA.
+          Cuéntanos cómo te fue con el producto. Se publica en el sitio una vez que el equipo la revisa.
         </p>
       </div>
 

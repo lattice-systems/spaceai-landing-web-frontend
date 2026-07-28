@@ -57,7 +57,7 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
         <div>
           <h1 class="text-foreground text-xl font-semibold tracking-tight">Reseñas</h1>
           <p class="text-muted-foreground text-sm">
-            Comentarios y valoraciones enviados por clientes — aprueba las que se pueden mostrar públicamente.
+            Lo que escriben los clientes. Aprobar una la manda al sitio público, rechazarla la deja fuera.
           </p>
         </div>
       </div>

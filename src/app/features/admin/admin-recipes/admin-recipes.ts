@@ -58,7 +58,7 @@ interface RecipeGroup {
           <div>
             <h1 class="text-foreground text-xl font-semibold tracking-tight">Recetas de producto</h1>
             <p class="text-muted-foreground text-sm">
-              Materiales por módulo (BOM). El precio de venta se recalcula solo al editar.
+              Qué materiales lleva cada módulo y en qué cantidad. El precio se recalcula al guardar.
             </p>
           </div>
         </div>

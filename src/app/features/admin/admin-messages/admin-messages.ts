@@ -57,7 +57,7 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
         <div>
           <h1 class="text-foreground text-xl font-semibold tracking-tight">Mensajes</h1>
           <p class="text-muted-foreground text-sm">
-            Bandeja del formulario público de contacto — los pendientes son tu cola de seguimiento.
+            Lo que llega desde el formulario de contacto del sitio. Los pendientes son los que faltan por responder.
           </p>
         </div>
       </div>

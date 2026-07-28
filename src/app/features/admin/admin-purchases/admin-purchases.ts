@@ -75,7 +75,7 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
           <div>
             <h1 class="text-foreground text-xl font-semibold tracking-tight">Compras</h1>
             <p class="text-muted-foreground text-sm">
-              Historial de compras a proveedores — registro financiero, no editable línea por línea.
+              Registro de compras a proveedores. Una compra mal cargada se cancela, no se edita ni se borra.
             </p>
           </div>
         </div>

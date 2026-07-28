@@ -33,8 +33,7 @@ const EMPTY_SUMMARY: ClientDashboardSummaryResponse = {
             Panel cliente SpaceIA
           </h1>
           <p class="text-muted-foreground mt-3 max-w-xl text-sm leading-6">
-            Consulta módulos activos, documentación técnica, cotizaciones y soporte desde una sola
-            vista.
+            Aquí ves tus cotizaciones, la documentación técnica y tus tickets de soporte.
           </p>
         </div>
         <div class="mt-5 flex flex-wrap gap-2">

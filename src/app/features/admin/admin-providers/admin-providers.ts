@@ -74,9 +74,7 @@ const PROVIDER_TYPES = ['Hardware', 'Software', 'Servicios', 'Logística', 'Otro
           </span>
           <div>
             <h1 class="text-foreground text-xl font-semibold tracking-tight">Proveedores</h1>
-            <p class="text-muted-foreground text-sm">
-              Maestro de proveedores — origen de las compras de materia prima.
-            </p>
+            <p class="text-muted-foreground text-sm">A quién le compramos materia prima.</p>
           </div>
         </div>
 
