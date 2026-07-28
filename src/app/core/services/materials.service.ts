@@ -44,6 +44,10 @@ export class MaterialsService {
     return this.http.put<MaterialResponse>(`${environment.apiUrl}/materials/${id}`, request);
   }
 
+  adjustStock(id: string, delta: number, reason: string): Observable<MaterialResponse> {
+    return this.http.put<MaterialResponse>(`${environment.apiUrl}/materials/${id}/adjust-stock`, { delta, reason });
+  }
+
   activate(id: string): Observable<void> {
     return this.http.put<void>(`${environment.apiUrl}/materials/${id}/activate`, {});
   }

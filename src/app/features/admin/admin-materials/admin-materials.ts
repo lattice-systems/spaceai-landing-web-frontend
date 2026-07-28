@@ -5,6 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideArrowUpDown,
   lucideBeaker,
   lucideEllipsis,
   lucidePencil,
@@ -57,6 +58,7 @@ type StockFilter = 'all' | 'low';
   ],
   providers: [
     provideIcons({
+      lucideArrowUpDown,
       lucideBeaker,
       lucideEllipsis,
       lucidePencil,
@@ -213,6 +215,10 @@ type StockFilter = 'all' | 'low';
                           <ng-icon name="lucidePencil" />
                           Editar
                         </button>
+                        <button hlmDropdownMenuItem (click)="openAdjustStock(material)">
+                          <ng-icon name="lucideArrowUpDown" />
+                          Ajustar stock
+                        </button>
                         <hlm-dropdown-menu-separator />
                         @if (material.isActive) {
                           <button hlmDropdownMenuItem (click)="deactivateOne(material)">Desactivar</button>
@@ -352,6 +358,38 @@ type StockFilter = 'all' | 'low';
       </hlm-dialog-content>
     </hlm-dialog>
 
+    <!-- Ajustar stock -->
+    <hlm-dialog #adjustStockDialogRef="hlmDialog">
+      <hlm-dialog-content *hlmDialogPortal class="w-full sm:max-w-md">
+        <hlm-dialog-header>
+          <h3 hlmDialogTitle>Ajustar stock</h3>
+          <p hlmDialogDescription>
+            {{ selectedMaterial()?.name }} — stock actual: {{ selectedMaterial()?.currentStock }}
+            {{ selectedMaterial()?.unitOfMeasure }}.
+          </p>
+        </hlm-dialog-header>
+        <form [formGroup]="adjustStockForm" (ngSubmit)="submitAdjustStock()" class="grid gap-4 py-2">
+          <div class="grid gap-2">
+            <label hlmLabel>Cantidad (positivo entra, negativo sale)</label>
+            <input hlmInput type="number" step="1" formControlName="delta" />
+          </div>
+          <div class="grid gap-2">
+            <label hlmLabel>Motivo</label>
+            <input hlmInput placeholder="Compra recibida, merma, conteo físico…" formControlName="reason" />
+          </div>
+          @if (formError()) {
+            <p class="text-destructive text-sm">{{ formError() }}</p>
+          }
+          <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
+            <button hlmBtn type="button" variant="outline" hlmDialogClose>Cancelar</button>
+            <button hlmBtn type="submit" [disabled]="adjustStockForm.invalid || submitting()">
+              @if (submitting()) { Guardando… } @else { Ajustar }
+            </button>
+          </hlm-dialog-footer>
+        </form>
+      </hlm-dialog-content>
+    </hlm-dialog>
+
     <!-- Confirmar eliminación individual -->
     <hlm-alert-dialog #deleteConfirmRef="hlmAlertDialog">
       <hlm-alert-dialog-content *hlmAlertDialogPortal>
@@ -406,6 +444,7 @@ export class AdminMaterials {
 
   @ViewChild('createDialogRef') private createDialogRef!: HlmDialog;
   @ViewChild('editDialogRef') private editDialogRef!: HlmDialog;
+  @ViewChild('adjustStockDialogRef') private adjustStockDialogRef!: HlmDialog;
   @ViewChild('deleteConfirmRef') protected deleteConfirmRef!: HlmAlertDialog;
   @ViewChild('bulkDeactivateConfirmRef') protected bulkDeactivateConfirmRef!: HlmAlertDialog;
   @ViewChild('bulkDeleteConfirmRef') protected bulkDeleteConfirmRef!: HlmAlertDialog;
@@ -448,6 +487,11 @@ export class AdminMaterials {
     unitCost: [0, [Validators.required, Validators.min(0)]],
     currentStock: [0, [Validators.required, Validators.min(0)]],
     minimumStock: [0, [Validators.required, Validators.min(0)]],
+  });
+
+  protected readonly adjustStockForm = this.fb.nonNullable.group({
+    delta: [0, [Validators.required]],
+    reason: ['', Validators.required],
   });
 
   private searchTimeout?: ReturnType<typeof setTimeout>;
@@ -525,6 +569,33 @@ export class AdminMaterials {
       minimumStock: material.minimumStock,
     });
     this.editDialogRef.open();
+  }
+
+  protected openAdjustStock(material: MaterialResponse): void {
+    this.formError.set(null);
+    this.selectedMaterial.set(material);
+    this.adjustStockForm.reset({ delta: 0, reason: '' });
+    this.adjustStockDialogRef.open();
+  }
+
+  protected submitAdjustStock(): void {
+    const material = this.selectedMaterial();
+    if (this.adjustStockForm.invalid || !material) return;
+    this.submitting.set(true);
+    this.formError.set(null);
+
+    const { delta, reason } = this.adjustStockForm.getRawValue();
+    this.materialsService.adjustStock(material.id, delta, reason).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.adjustStockDialogRef.close();
+        this.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.submitting.set(false);
+        this.formError.set(this.extractError(err, 'No se pudo ajustar el stock.'));
+      },
+    });
   }
 
   protected openDeleteConfirm(material: MaterialResponse): void {
