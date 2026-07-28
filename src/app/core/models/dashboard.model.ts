@@ -4,16 +4,24 @@ export interface QuotesByStatusResponse {
   rejected: number;
 }
 
+export interface AdminActivityItemResponse {
+  title: string;
+  category: string;
+  date: string;
+}
+
 export interface DashboardSummaryResponse {
   pendingQuotes: number;
   pendingMessages: number;
   pendingReviews: number;
   lowStockMaterials: number;
+  openSupportTickets: number;
   activeProviders: number;
   totalClients: number;
   monthlyPurchasesTotal: number;
   monthlyApprovedQuotesTotal: number;
   quotesByStatus: QuotesByStatusResponse;
+  recentActivity: AdminActivityItemResponse[];
 }
 
 export interface ClientActivityItemResponse {

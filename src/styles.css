@@ -103,3 +103,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* lucide icons ship stroke-only (fill="none" on the svg) — this class lets specific
+   uses (star ratings) render filled. Author CSS beats the presentation attribute. */
+.icon-fill svg {
+  fill: currentColor;
+}

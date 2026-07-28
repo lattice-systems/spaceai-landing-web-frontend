@@ -1,10 +1,11 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideBeaker,
+  lucideLifeBuoy,
   lucideMail,
   lucidePlus,
   lucideQuote,
@@ -23,18 +24,36 @@ const EMPTY_SUMMARY: DashboardSummaryResponse = {
   pendingMessages: 0,
   pendingReviews: 0,
   lowStockMaterials: 0,
+  openSupportTickets: 0,
   activeProviders: 0,
   totalClients: 0,
   monthlyPurchasesTotal: 0,
   monthlyApprovedQuotesTotal: 0,
   quotesByStatus: { pending: 0, approved: 0, rejected: 0 },
+  recentActivity: [],
+};
+
+const ACTIVITY_ICONS: Record<string, { icon: string; chip: string }> = {
+  Comercial: { icon: 'lucideQuote', chip: '--chip-amber' },
+  Contacto: { icon: 'lucideMail', chip: '--chip-violet' },
+  Reseña: { icon: 'lucideStar', chip: '--chip-emerald' },
+  Soporte: { icon: 'lucideLifeBuoy', chip: '--chip-sky' },
 };
 
 @Component({
   selector: 'app-admin-dashboard',
-  imports: [RouterLink, NgIcon, CurrencyPipe, HlmButtonImports, HlmCardImports, HlmBadgeImports],
+  imports: [RouterLink, NgIcon, CurrencyPipe, DatePipe, HlmButtonImports, HlmCardImports, HlmBadgeImports],
   providers: [
-    provideIcons({ lucideBeaker, lucideMail, lucidePlus, lucideQuote, lucideStar, lucideTruck, lucideUsers }),
+    provideIcons({
+      lucideBeaker,
+      lucideLifeBuoy,
+      lucideMail,
+      lucidePlus,
+      lucideQuote,
+      lucideStar,
+      lucideTruck,
+      lucideUsers,
+    }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -192,6 +211,10 @@ const EMPTY_SUMMARY: DashboardSummaryResponse = {
                 {{ summary().monthlyApprovedQuotesTotal | currency: 'USD' }}
               </p>
             </div>
+            <div>
+              <p class="text-muted-foreground text-xs">Tickets de soporte abiertos</p>
+              <p class="text-foreground mt-1 text-xl font-semibold tabular-nums">{{ summary().openSupportTickets }}</p>
+            </div>
           </div>
         </div>
 
@@ -217,6 +240,33 @@ const EMPTY_SUMMARY: DashboardSummaryResponse = {
               Gestionar usuarios
             </a>
           </div>
+        </div>
+      </div>
+
+      <div hlmCard>
+        <div hlmCardHeader>
+          <h2 hlmCardTitle>Actividad reciente</h2>
+          <p hlmCardDescription>Últimos movimientos en cotizaciones, mensajes, reseñas y soporte.</p>
+        </div>
+        <div hlmCardContent class="grid gap-1">
+          @for (item of summary().recentActivity; track item.title + item.date) {
+            <div class="border-border/60 flex items-center gap-3 border-b py-2.5 last:border-b-0">
+              <span
+                class="flex size-8 shrink-0 items-center justify-center rounded-full"
+                [style.background]="activityChipBg(item.category)"
+                [style.color]="activityChipColor(item.category)"
+              >
+                <ng-icon [name]="activityIcon(item.category)" class="text-sm" />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="text-foreground truncate text-sm font-medium">{{ item.title }}</p>
+                <p class="text-muted-foreground text-xs">{{ item.category }}</p>
+              </div>
+              <span class="text-muted-foreground shrink-0 text-xs">{{ item.date | date: 'mediumDate' }}</span>
+            </div>
+          } @empty {
+            <p class="text-muted-foreground py-2 text-sm">Sin actividad reciente.</p>
+          }
         </div>
       </div>
     </section>
@@ -252,5 +302,19 @@ export class AdminDashboard {
   protected pct(count: number): number {
     const total = this.totalQuotes();
     return total === 0 ? 0 : (count / total) * 100;
+  }
+
+  protected activityIcon(category: string): string {
+    return ACTIVITY_ICONS[category]?.icon ?? 'lucideQuote';
+  }
+
+  protected activityChipBg(category: string): string {
+    const chip = ACTIVITY_ICONS[category]?.chip ?? '--muted-foreground';
+    return `color-mix(in oklch, var(${chip}) 14%, transparent)`;
+  }
+
+  protected activityChipColor(category: string): string {
+    const chip = ACTIVITY_ICONS[category]?.chip ?? '--muted-foreground';
+    return `var(${chip})`;
   }
 }

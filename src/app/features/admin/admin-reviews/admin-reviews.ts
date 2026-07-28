@@ -140,7 +140,7 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
                   <td hlmTd class="text-muted-foreground whitespace-nowrap">
                     <span class="text-chip-amber inline-flex items-center gap-0.5" style="color: var(--chip-amber)">
                       @for (s of starsFor(review.rating); track $index) {
-                        <ng-icon name="lucideStar" [class.opacity-25]="!s" class="text-sm" />
+                        <ng-icon name="lucideStar" [class.icon-fill]="s" [class.opacity-30]="!s" class="text-sm" />
                       }
                     </span>
                   </td>
@@ -221,7 +221,7 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
             </span>
             <span class="inline-flex items-center gap-0.5" style="color: var(--chip-amber)">
               @for (s of starsFor(selectedReview()?.rating ?? 0); track $index) {
-                <ng-icon name="lucideStar" [class.opacity-25]="!s" class="text-base" />
+                <ng-icon name="lucideStar" [class.icon-fill]="s" [class.opacity-30]="!s" class="text-base" />
               }
             </span>
             <span class="text-muted-foreground text-sm">{{ selectedReview()?.rating }}/5</span>
