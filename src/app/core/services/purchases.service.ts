@@ -3,7 +3,12 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PagedResult } from '../models/paged-result.model';
-import { CreatePurchaseRequest, PurchaseResponse, PurchasesQuery } from '../models/purchase.model';
+import {
+  CreatePurchaseRequest,
+  PurchaseResponse,
+  PurchasesQuery,
+  ReceivePurchaseRequest,
+} from '../models/purchase.model';
 
 @Injectable({ providedIn: 'root' })
 export class PurchasesService {
@@ -33,5 +38,9 @@ export class PurchasesService {
 
   cancel(id: string): Observable<PurchaseResponse> {
     return this.http.put<PurchaseResponse>(`${environment.apiUrl}/purchases/${id}/cancel`, {});
+  }
+
+  receive(id: string, request: ReceivePurchaseRequest): Observable<PurchaseResponse> {
+    return this.http.put<PurchaseResponse>(`${environment.apiUrl}/purchases/${id}/receive`, request);
   }
 }

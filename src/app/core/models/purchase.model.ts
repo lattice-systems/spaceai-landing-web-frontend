@@ -5,6 +5,16 @@ export interface PurchaseItemResponse {
   quantity: number;
   unitCost: number;
   subtotal: number;
+  receivedQuantity: number;
+}
+
+export interface ReceivePurchaseItemRequest {
+  purchaseItemId: string;
+  receivedQuantity: number;
+}
+
+export interface ReceivePurchaseRequest {
+  items: ReceivePurchaseItemRequest[];
 }
 
 export interface PurchaseResponse {

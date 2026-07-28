@@ -1,10 +1,11 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, effect, inject, signal, ViewChild } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideEllipsis,
+  lucidePackageCheck,
   lucidePlus,
   lucideReceipt,
   lucideSearch,
@@ -25,11 +26,11 @@ import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { ProviderResponse } from '../../../core/models/provider.model';
-import { PurchaseResponse } from '../../../core/models/purchase.model';
+import { PurchaseItemResponse, PurchaseResponse } from '../../../core/models/purchase.model';
 import { ProvidersService } from '../../../core/services/providers.service';
 import { PurchasesService } from '../../../core/services/purchases.service';
 
-type StatusFilter = 'all' | 'Completed' | 'Cancelled';
+type StatusFilter = 'all' | 'Pending' | 'PartiallyReceived' | 'Received' | 'Cancelled';
 
 @Component({
   selector: 'app-admin-purchases',
@@ -53,6 +54,7 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
   providers: [
     provideIcons({
       lucideEllipsis,
+      lucidePackageCheck,
       lucidePlus,
       lucideReceipt,
       lucideSearch,
@@ -75,7 +77,8 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
           <div>
             <h1 class="text-foreground text-xl font-semibold tracking-tight">Compras</h1>
             <p class="text-muted-foreground text-sm">
-              Registro de compras a proveedores. Una compra mal cargada se cancela, no se edita ni se borra.
+              Ordenes de compra: registra qué se pidió y ve registrando qué va llegando. Una orden mal
+              cargada se cancela, no se edita ni se borra.
             </p>
           </div>
         </div>
@@ -108,9 +111,11 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
           }
         </hlm-native-select>
 
-        <hlm-native-select class="w-40" [value]="statusFilter()" (valueChange)="onStatusFilterChange($event)">
+        <hlm-native-select class="w-44" [value]="statusFilter()" (valueChange)="onStatusFilterChange($event)">
           <option value="all" hlmNativeSelectOption>Todos los estados</option>
-          <option value="Completed" hlmNativeSelectOption>Completadas</option>
+          <option value="Pending" hlmNativeSelectOption>Pendientes</option>
+          <option value="PartiallyReceived" hlmNativeSelectOption>Recibidas parcial</option>
+          <option value="Received" hlmNativeSelectOption>Recibidas</option>
           <option value="Cancelled" hlmNativeSelectOption>Canceladas</option>
         </hlm-native-select>
       </div>
@@ -155,28 +160,48 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
                       hlmBadge
                       variant="outline"
                       class="gap-1.5 font-normal"
-                      [style.background]="purchase.status === 'Cancelled' ? null : 'color-mix(in oklch, var(--chip-emerald) 14%, transparent)'"
-                      [style.color]="purchase.status === 'Cancelled' ? null : 'var(--chip-emerald)'"
-                      [style.border-color]="purchase.status === 'Cancelled' ? null : 'color-mix(in oklch, var(--chip-emerald) 35%, transparent)'"
+                      [style.background]="statusChipBg(purchase.status)"
+                      [style.color]="statusChipColor(purchase.status)"
+                      [style.border-color]="statusChipBorder(purchase.status)"
                     >
-                      {{ purchase.status === 'Cancelled' ? 'Cancelada' : 'Completada' }}
+                      {{ statusLabel(purchase.status) }}
                     </span>
                   </td>
                   <td hlmTd class="text-right">
-                    <button
-                      hlmBtn
-                      variant="ghost"
-                      size="icon"
-                      [hlmDropdownMenuTrigger]="rowMenu"
-                      align="end"
-                      aria-label="Acciones"
-                    >
-                      <ng-icon name="lucideEllipsis" />
-                    </button>
+                    <div class="flex items-center justify-end gap-1">
+                      @if (canReceive(purchase.status)) {
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Registrar recepción"
+                          title="Registrar recepción"
+                          (click)="openReceive(purchase)"
+                        >
+                          <ng-icon name="lucidePackageCheck" />
+                        </button>
+                      }
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="icon"
+                        [hlmDropdownMenuTrigger]="rowMenu"
+                        align="end"
+                        aria-label="Acciones"
+                      >
+                        <ng-icon name="lucideEllipsis" />
+                      </button>
+                    </div>
                     <ng-template #rowMenu>
                       <hlm-dropdown-menu class="min-w-48 rounded-lg">
                         <button hlmDropdownMenuItem (click)="openDetail(purchase)">Ver detalle</button>
-                        @if (purchase.status !== 'Cancelled') {
+                        @if (canReceive(purchase.status)) {
+                          <button hlmDropdownMenuItem (click)="openReceive(purchase)">
+                            <ng-icon name="lucidePackageCheck" />
+                            Registrar recepción
+                          </button>
+                        }
+                        @if (canCancel(purchase.status)) {
                           <hlm-dropdown-menu-separator />
                           <button hlmDropdownMenuItem variant="destructive" (click)="openCancelConfirm(purchase)">
                             <ng-icon name="lucideTrash2" />
@@ -212,7 +237,9 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
       <hlm-dialog-content *hlmDialogPortal class="w-full sm:max-w-2xl">
         <hlm-dialog-header>
           <h3 hlmDialogTitle>Nueva compra</h3>
-          <p hlmDialogDescription>Se registra como completada. Solo se puede cancelar después, no editar sus líneas.</p>
+          <p hlmDialogDescription>
+            Queda pendiente hasta que registres qué fue llegando. Sus líneas no se editan después.
+          </p>
         </hlm-dialog-header>
         <form [formGroup]="form" (ngSubmit)="submitCreate()" class="grid gap-5 py-2">
           <div class="grid gap-2">
@@ -283,7 +310,7 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
         <hlm-dialog-header>
           <h3 hlmDialogTitle>{{ selectedPurchase()?.providerName }}</h3>
           <p hlmDialogDescription>
-            {{ selectedPurchase()?.purchaseDate | date: 'mediumDate' }} — {{ selectedPurchase()?.status === 'Cancelled' ? 'Cancelada' : 'Completada' }}
+            {{ selectedPurchase()?.purchaseDate | date: 'mediumDate' }} — {{ statusLabel(selectedPurchase()?.status ?? '') }}
           </p>
         </hlm-dialog-header>
         <div class="grid gap-4 py-2">
@@ -296,6 +323,7 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
                 <tr hlmTr class="bg-muted/40 hover:bg-muted/40">
                   <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Material</th>
                   <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Cantidad</th>
+                  <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Recibido</th>
                   <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Costo unit.</th>
                   <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Subtotal</th>
                 </tr>
@@ -312,6 +340,11 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
                       </div>
                     </td>
                     <td hlmTd>{{ item.quantity }}</td>
+                    <td hlmTd>
+                      <span [class.text-chip-emerald]="item.receivedQuantity >= item.quantity" [style.color]="item.receivedQuantity >= item.quantity ? 'var(--chip-emerald)' : null">
+                        {{ item.receivedQuantity }}/{{ item.quantity }}
+                      </span>
+                    </td>
                     <td hlmTd>{{ item.unitCost | currency: 'USD' }}</td>
                     <td hlmTd class="font-medium">{{ item.subtotal | currency: 'USD' }}</td>
                   </tr>
@@ -326,6 +359,43 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
         <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
           <button hlmBtn type="button" variant="outline" hlmDialogClose>Cerrar</button>
         </hlm-dialog-footer>
+      </hlm-dialog-content>
+    </hlm-dialog>
+
+    <!-- Registrar recepción -->
+    <hlm-dialog #receiveDialogRef="hlmDialog">
+      <hlm-dialog-content *hlmDialogPortal class="w-full sm:max-w-lg">
+        <hlm-dialog-header>
+          <h3 hlmDialogTitle>Registrar recepción</h3>
+          <p hlmDialogDescription>{{ selectedPurchase()?.providerName }} — cantidad total recibida a la fecha por línea.</p>
+        </hlm-dialog-header>
+        <form [formGroup]="receiveForm" (ngSubmit)="submitReceive()" class="grid gap-3 py-2">
+          @for (line of receiveLines.controls; track $index; let i = $index) {
+            <div [formGroup]="line" class="grid grid-cols-[1fr_auto] items-center gap-3">
+              <div>
+                <p class="text-foreground text-sm font-medium">{{ receiveItems()[i].materialName }}</p>
+                <p class="text-muted-foreground text-xs">ordenado: {{ receiveItems()[i].quantity }}</p>
+              </div>
+              <input
+                hlmInput
+                type="number"
+                min="0"
+                [max]="receiveItems()[i].quantity"
+                class="w-24"
+                formControlName="receivedQuantity"
+              />
+            </div>
+          }
+          @if (formError()) {
+            <p class="text-destructive text-sm">{{ formError() }}</p>
+          }
+          <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
+            <button hlmBtn type="button" variant="outline" hlmDialogClose>Cancelar</button>
+            <button hlmBtn type="submit" [disabled]="submitting()">
+              @if (submitting()) { Guardando… } @else { Guardar recepción }
+            </button>
+          </hlm-dialog-footer>
+        </form>
       </hlm-dialog-content>
     </hlm-dialog>
 
@@ -353,7 +423,10 @@ export class AdminPurchases {
 
   @ViewChild('createDialogRef') private createDialogRef!: HlmDialog;
   @ViewChild('detailDialogRef') private detailDialogRef!: HlmDialog;
+  @ViewChild('receiveDialogRef') private receiveDialogRef!: HlmDialog;
   @ViewChild('cancelConfirmRef') protected cancelConfirmRef!: HlmAlertDialog;
+
+  protected readonly receiveItems = signal<PurchaseItemResponse[]>([]);
 
   protected readonly providers = signal<ProviderResponse[]>([]);
   protected readonly activeProviders = signal<ProviderResponse[]>([]);
@@ -383,6 +456,20 @@ export class AdminPurchases {
 
   protected get items() {
     return this.form.controls.items;
+  }
+
+  protected readonly receiveForm = this.fb.nonNullable.group({
+    lines: this.fb.array<ReturnType<typeof this.newReceiveLine>>([]),
+  });
+
+  protected get receiveLines(): FormArray<ReturnType<typeof this.newReceiveLine>> {
+    return this.receiveForm.controls.lines;
+  }
+
+  private newReceiveLine() {
+    return this.fb.nonNullable.group({
+      receivedQuantity: [0, [Validators.required, Validators.min(0)]],
+    });
   }
 
   // Método plano (no computed): un FormArray no es un signal, así que un computed() nunca
@@ -467,6 +554,81 @@ export class AdminPurchases {
   protected openCancelConfirm(purchase: PurchaseResponse): void {
     this.selectedPurchase.set(purchase);
     this.cancelConfirmRef.open();
+  }
+
+  protected statusLabel(status: string): string {
+    if (status === 'PartiallyReceived') return 'Recibida parcial';
+    if (status === 'Received') return 'Recibida';
+    if (status === 'Cancelled') return 'Cancelada';
+    return 'Pendiente';
+  }
+
+  private statusChip(status: string): string | null {
+    if (status === 'Received') return '--chip-emerald';
+    if (status === 'PartiallyReceived') return '--chip-sky';
+    if (status === 'Pending') return '--chip-amber';
+    return null;
+  }
+
+  protected statusChipBg(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
+  }
+
+  protected statusChipColor(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `var(${chip})` : null;
+  }
+
+  protected statusChipBorder(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
+  }
+
+  protected canReceive(status: string): boolean {
+    return status === 'Pending' || status === 'PartiallyReceived';
+  }
+
+  protected canCancel(status: string): boolean {
+    return status === 'Pending' || status === 'PartiallyReceived';
+  }
+
+  protected openReceive(purchase: PurchaseResponse): void {
+    this.formError.set(null);
+    this.selectedPurchase.set(purchase);
+    this.receiveItems.set(purchase.items);
+    this.receiveLines.clear();
+    for (const item of purchase.items) {
+      this.receiveLines.push(this.newReceiveLine());
+    }
+    this.receiveForm.reset({
+      lines: purchase.items.map((item) => ({ receivedQuantity: item.receivedQuantity })),
+    });
+    this.receiveDialogRef.open();
+  }
+
+  protected submitReceive(): void {
+    const purchase = this.selectedPurchase();
+    if (this.receiveForm.invalid || !purchase) return;
+    this.submitting.set(true);
+    this.formError.set(null);
+
+    const items = this.receiveItems().map((item, i) => ({
+      purchaseItemId: item.id,
+      receivedQuantity: this.receiveLines.at(i).getRawValue().receivedQuantity,
+    }));
+
+    this.purchasesService.receive(purchase.id, { items }).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.receiveDialogRef.close();
+        this.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.submitting.set(false);
+        this.formError.set(this.extractError(err, 'No se pudo registrar la recepción.'));
+      },
+    });
   }
 
   protected submitCreate(): void {
