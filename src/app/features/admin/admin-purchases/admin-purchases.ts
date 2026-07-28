@@ -1,10 +1,13 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ChangeDetectionStrategy, Component, effect, inject, signal, ViewChild } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideEllipsis,
+  lucideLayoutGrid,
+  lucideList,
   lucidePackageCheck,
   lucidePlus,
   lucideReceipt,
@@ -31,11 +34,21 @@ import { ProvidersService } from '../../../core/services/providers.service';
 import { PurchasesService } from '../../../core/services/purchases.service';
 
 type StatusFilter = 'all' | 'Pending' | 'PartiallyReceived' | 'Received' | 'Cancelled';
+type BoardStatus = 'Pending' | 'PartiallyReceived' | 'Received' | 'Cancelled';
+type ViewMode = 'table' | 'board';
+
+const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
+  { status: 'Pending', label: 'Pendiente' },
+  { status: 'PartiallyReceived', label: 'Recibida parcial' },
+  { status: 'Received', label: 'Recibida' },
+  { status: 'Cancelled', label: 'Cancelada' },
+];
 
 @Component({
   selector: 'app-admin-purchases',
   imports: [
     ReactiveFormsModule,
+    DragDropModule,
     NgIcon,
     DatePipe,
     CurrencyPipe,
@@ -54,6 +67,8 @@ type StatusFilter = 'all' | 'Pending' | 'PartiallyReceived' | 'Received' | 'Canc
   providers: [
     provideIcons({
       lucideEllipsis,
+      lucideLayoutGrid,
+      lucideList,
       lucidePackageCheck,
       lucidePlus,
       lucideReceipt,
@@ -83,10 +98,32 @@ type StatusFilter = 'all' | 'Pending' | 'PartiallyReceived' | 'Received' | 'Canc
           </div>
         </div>
 
-        <button hlmBtn size="sm" (click)="openCreate()">
-          <ng-icon name="lucidePlus" class="mr-1" />
-          Nueva compra
-        </button>
+        <div class="flex items-center gap-2">
+          <div class="border-border bg-muted/40 flex items-center gap-0.5 rounded-lg border p-0.5">
+            <button
+              hlmBtn
+              [variant]="view() === 'table' ? 'default' : 'ghost'"
+              size="sm"
+              (click)="setView('table')"
+            >
+              <ng-icon name="lucideList" class="mr-1.5" />
+              Tabla
+            </button>
+            <button
+              hlmBtn
+              [variant]="view() === 'board' ? 'default' : 'ghost'"
+              size="sm"
+              (click)="setView('board')"
+            >
+              <ng-icon name="lucideLayoutGrid" class="mr-1.5" />
+              Tablero
+            </button>
+          </div>
+          <button hlmBtn size="sm" (click)="openCreate()">
+            <ng-icon name="lucidePlus" class="mr-1" />
+            Nueva compra
+          </button>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
@@ -111,13 +148,15 @@ type StatusFilter = 'all' | 'Pending' | 'PartiallyReceived' | 'Received' | 'Canc
           }
         </hlm-native-select>
 
-        <hlm-native-select class="w-44" [value]="statusFilter()" (valueChange)="onStatusFilterChange($event)">
-          <option value="all" hlmNativeSelectOption>Todos los estados</option>
-          <option value="Pending" hlmNativeSelectOption>Pendientes</option>
-          <option value="PartiallyReceived" hlmNativeSelectOption>Recibidas parcial</option>
-          <option value="Received" hlmNativeSelectOption>Recibidas</option>
-          <option value="Cancelled" hlmNativeSelectOption>Canceladas</option>
-        </hlm-native-select>
+        @if (view() === 'table') {
+          <hlm-native-select class="w-44" [value]="statusFilter()" (valueChange)="onStatusFilterChange($event)">
+            <option value="all" hlmNativeSelectOption>Todos los estados</option>
+            <option value="Pending" hlmNativeSelectOption>Pendientes</option>
+            <option value="PartiallyReceived" hlmNativeSelectOption>Recibidas parcial</option>
+            <option value="Received" hlmNativeSelectOption>Recibidas</option>
+            <option value="Cancelled" hlmNativeSelectOption>Canceladas</option>
+          </hlm-native-select>
+        }
       </div>
 
       @if (actionError()) {
@@ -135,6 +174,7 @@ type StatusFilter = 'all' | 'Pending' | 'PartiallyReceived' | 'Received' | 'Canc
         </div>
       }
 
+      @if (view() === 'table') {
       <div hlmCard class="gap-0 overflow-hidden rounded-xl py-0">
         <div hlmTableContainer>
           <table hlmTable>
@@ -230,6 +270,54 @@ type StatusFilter = 'all' | 'Pending' | 'PartiallyReceived' | 'Received' | 'Canc
           [totalItems]="page().totalRecords"
         />
       </div>
+      }
+
+      @if (view() === 'board') {
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          @for (col of boardColumns; track col.status) {
+            <div class="flex min-w-0 flex-col gap-2">
+              <div class="flex items-center gap-2 px-1">
+                <span
+                  class="size-2 shrink-0 rounded-full"
+                  [style.background]="statusChipColor(col.status) ?? 'var(--muted-foreground)'"
+                ></span>
+                <h3 class="text-foreground text-sm font-medium">{{ col.label }}</h3>
+                <span class="text-muted-foreground text-xs">{{ boardData()[col.status].length }}</span>
+              </div>
+              <div
+                cdkDropList
+                [id]="col.status"
+                [cdkDropListData]="boardData()[col.status]"
+                [cdkDropListConnectedTo]="boardColumnIds"
+                (cdkDropListDropped)="onBoardDrop($event, col.status)"
+                class="bg-muted/30 flex min-h-24 flex-col gap-2 rounded-xl p-2"
+              >
+                @for (purchase of boardData()[col.status]; track purchase.id) {
+                  <div
+                    cdkDrag
+                    [cdkDragData]="purchase"
+                    hlmCard
+                    class="cursor-grab gap-0 p-3 active:cursor-grabbing"
+                  >
+                    <button type="button" class="text-left" (click)="openDetail(purchase)">
+                      <p class="text-foreground text-sm font-medium leading-tight">{{ purchase.providerName }}</p>
+                      <p class="text-muted-foreground mt-1 text-xs">{{ purchase.purchaseDate | date: 'mediumDate' }}</p>
+                    </button>
+                    <div class="mt-2 flex items-center justify-between">
+                      <span class="text-foreground text-sm font-semibold">{{ purchase.total | currency: 'USD' }}</span>
+                      <span class="text-muted-foreground text-xs">
+                        {{ purchase.items.length }} {{ purchase.items.length === 1 ? 'línea' : 'líneas' }}
+                      </span>
+                    </div>
+                  </div>
+                } @empty {
+                  <p class="text-muted-foreground px-1 py-3 text-center text-xs">Sin compras aquí.</p>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
     </section>
 
     <!-- Nueva compra -->
@@ -428,6 +516,16 @@ export class AdminPurchases {
 
   protected readonly receiveItems = signal<PurchaseItemResponse[]>([]);
 
+  protected readonly boardColumns = BOARD_COLUMNS;
+  protected readonly boardColumnIds = BOARD_COLUMNS.map((c) => c.status);
+  protected readonly view = signal<ViewMode>('table');
+  protected readonly boardData = signal<Record<BoardStatus, PurchaseResponse[]>>({
+    Pending: [],
+    PartiallyReceived: [],
+    Received: [],
+    Cancelled: [],
+  });
+
   protected readonly providers = signal<ProviderResponse[]>([]);
   protected readonly activeProviders = signal<ProviderResponse[]>([]);
 
@@ -593,7 +691,7 @@ export class AdminPurchases {
     return status === 'Pending' || status === 'PartiallyReceived';
   }
 
-  protected openReceive(purchase: PurchaseResponse): void {
+  protected openReceive(purchase: PurchaseResponse, fillFull = false): void {
     this.formError.set(null);
     this.selectedPurchase.set(purchase);
     this.receiveItems.set(purchase.items);
@@ -602,7 +700,9 @@ export class AdminPurchases {
       this.receiveLines.push(this.newReceiveLine());
     }
     this.receiveForm.reset({
-      lines: purchase.items.map((item) => ({ receivedQuantity: item.receivedQuantity })),
+      lines: purchase.items.map((item) => ({
+        receivedQuantity: fillFull ? item.quantity : item.receivedQuantity,
+      })),
     });
     this.receiveDialogRef.open();
   }
@@ -672,6 +772,56 @@ export class AdminPurchases {
     return err.error?.message || fallback;
   }
 
+  protected setView(view: ViewMode): void {
+    this.view.set(view);
+    if (view === 'board') this.loadBoard();
+  }
+
+  // El tablero necesita ver las 4 columnas completas a la vez, no una página de 10 — se
+  // pide aparte con un límite alto en vez de paginar (mismo patrón ya usado en Recetas).
+  private loadBoard(): void {
+    this.purchasesService
+      .list({
+        pageNumber: 1,
+        pageSize: 200,
+        search: this.search() || undefined,
+        providerId: this.providerFilter() || undefined,
+      })
+      .subscribe((result) => {
+        const grouped: Record<BoardStatus, PurchaseResponse[]> = {
+          Pending: [],
+          PartiallyReceived: [],
+          Received: [],
+          Cancelled: [],
+        };
+        for (const purchase of result.data) {
+          const status = purchase.status as BoardStatus;
+          (grouped[status] ?? grouped.Pending).push(purchase);
+        }
+        this.boardData.set(grouped);
+      });
+  }
+
+  protected onBoardDrop(event: CdkDragDrop<PurchaseResponse[]>, targetStatus: BoardStatus): void {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+      return;
+    }
+
+    // Solo se acepta soltar sobre un destino que representa una acción real — el estado
+    // no se fuerza a mano, se deriva de lo recibido. Cualquier otro destino no hace nada
+    // y la tarjeta vuelve visualmente a su columna (nunca se movió el dato de verdad).
+    const purchase = event.previousContainer.data[event.previousIndex];
+    if (targetStatus === 'Cancelled' && this.canCancel(purchase.status)) {
+      this.openCancelConfirm(purchase);
+      return;
+    }
+    if (targetStatus === 'Received' && this.canReceive(purchase.status)) {
+      this.openReceive(purchase, true);
+      return;
+    }
+  }
+
   private reload(): void {
     this.purchasesService
       .list({
@@ -682,5 +832,7 @@ export class AdminPurchases {
         status: this.statusFilter() === 'all' ? undefined : this.statusFilter(),
       })
       .subscribe((result) => this.page.set(result));
+
+    if (this.view() === 'board') this.loadBoard();
   }
 }
