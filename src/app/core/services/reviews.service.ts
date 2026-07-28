@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BulkAffectedResult } from '../models/material.model';
 import { PagedResult } from '../models/paged-result.model';
-import { CreateReviewRequest, ReviewResponse, ReviewsQuery } from '../models/review.model';
+import { CreateReviewRequest, DecideReviewRequest, ReviewResponse, ReviewsQuery } from '../models/review.model';
 
 @Injectable({ providedIn: 'root' })
 export class ReviewsService {
@@ -36,12 +36,12 @@ export class ReviewsService {
     return this.http.post<ReviewResponse>(`${environment.apiUrl}/reviews`, request);
   }
 
-  approve(id: string): Observable<ReviewResponse> {
-    return this.http.put<ReviewResponse>(`${environment.apiUrl}/reviews/${id}/approve`, {});
+  approve(id: string, request: DecideReviewRequest = {}): Observable<ReviewResponse> {
+    return this.http.put<ReviewResponse>(`${environment.apiUrl}/reviews/${id}/approve`, request);
   }
 
-  reject(id: string): Observable<ReviewResponse> {
-    return this.http.put<ReviewResponse>(`${environment.apiUrl}/reviews/${id}/reject`, {});
+  reject(id: string, request: DecideReviewRequest = {}): Observable<ReviewResponse> {
+    return this.http.put<ReviewResponse>(`${environment.apiUrl}/reviews/${id}/reject`, request);
   }
 
   bulkDecide(ids: string[], status: 'Approved' | 'Rejected'): Observable<BulkAffectedResult> {

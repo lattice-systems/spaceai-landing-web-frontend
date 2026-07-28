@@ -8,7 +8,12 @@ export interface ReviewResponse {
   rating: number;
   comment: string;
   status: string;
+  adminNotes: string | null;
   createdAt: string;
+}
+
+export interface DecideReviewRequest {
+  adminNotes?: string;
 }
 
 export interface CreateReviewRequest {

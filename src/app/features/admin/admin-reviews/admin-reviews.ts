@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, ViewChild } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -17,6 +18,7 @@ import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmDialogImports, HlmDialog } from '@spartan-ng/helm/dialog';
 import { HlmInputImports } from '@spartan-ng/helm/input';
+import { HlmLabelImports } from '@spartan-ng/helm/label';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmTableImports } from '@spartan-ng/helm/table';
@@ -30,11 +32,13 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
 @Component({
   selector: 'app-admin-reviews',
   imports: [
+    ReactiveFormsModule,
     NgIcon,
     DatePipe,
     HlmButtonImports,
     HlmCardImports,
     HlmInputImports,
+    HlmLabelImports,
     HlmNativeSelectImports,
     HlmTableImports,
     HlmBadgeImports,
@@ -162,8 +166,8 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
                   <td hlmTd class="whitespace-nowrap">
                     @if (review.status === 'Pending') {
                       <div class="flex gap-2">
-                        <button hlmBtn size="sm" (click)="decideOne(review, 'Approved')">Aprobar</button>
-                        <button hlmBtn size="sm" variant="outline" (click)="decideOne(review, 'Rejected')">Rechazar</button>
+                        <button hlmBtn size="sm" (click)="openDecision(review, 'Approved')">Aprobar</button>
+                        <button hlmBtn size="sm" variant="outline" (click)="openDecision(review, 'Rejected')">Rechazar</button>
                       </div>
                     } @else {
                       <button hlmBtn size="sm" variant="ghost" (click)="openDetail(review)">Ver detalle</button>
@@ -219,12 +223,18 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
           <p class="text-foreground border-border bg-muted/30 rounded-lg border p-3 text-sm leading-6 whitespace-pre-line">
             {{ selectedReview()?.comment }}
           </p>
+          @if (selectedReview()?.adminNotes) {
+            <div class="border-border bg-muted/30 rounded-lg border p-3">
+              <p class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Nota del admin</p>
+              <p class="text-foreground mt-1 text-sm">{{ selectedReview()?.adminNotes }}</p>
+            </div>
+          }
         </div>
         <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
           <button hlmBtn type="button" variant="outline" hlmDialogClose>Cerrar</button>
           @if (selectedReview()?.status === 'Pending') {
-            <button hlmBtn type="button" variant="outline" (click)="decideFromDetail('Rejected')">Rechazar</button>
-            <button hlmBtn type="button" (click)="decideFromDetail('Approved')">
+            <button hlmBtn type="button" variant="outline" (click)="openDecisionFromDetail('Rejected')">Rechazar</button>
+            <button hlmBtn type="button" (click)="openDecisionFromDetail('Approved')">
               <ng-icon name="lucideCheck" class="mr-1" />
               Aprobar
             </button>
@@ -232,14 +242,51 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
         </hlm-dialog-footer>
       </hlm-dialog-content>
     </hlm-dialog>
+
+    <!-- Aprobar / Rechazar -->
+    <hlm-dialog #decisionDialogRef="hlmDialog">
+      <hlm-dialog-content *hlmDialogPortal class="w-full sm:max-w-md">
+        <hlm-dialog-header>
+          <h3 hlmDialogTitle>
+            {{ decisionStatus() === 'Approved' ? '¿Aprobar esta reseña?' : '¿Rechazar esta reseña?' }}
+          </h3>
+          <p hlmDialogDescription>{{ selectedReview()?.institutionName }} — {{ selectedReview()?.productModuleName }}</p>
+        </hlm-dialog-header>
+        <form [formGroup]="decisionForm" (ngSubmit)="submitDecision()" class="grid gap-4 py-2">
+          <div class="grid gap-2">
+            <label hlmLabel>Notas (opcional)</label>
+            <input hlmInput placeholder="Motivo, contexto para el cliente…" formControlName="adminNotes" />
+          </div>
+          <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
+            <button hlmBtn type="button" variant="outline" hlmDialogClose>Cancelar</button>
+            <button
+              hlmBtn
+              type="submit"
+              [variant]="decisionStatus() === 'Rejected' ? 'destructive' : 'default'"
+              [disabled]="submitting()"
+            >
+              @if (submitting()) { Guardando… } @else if (decisionStatus() === 'Approved') { Aprobar } @else { Rechazar }
+            </button>
+          </hlm-dialog-footer>
+        </form>
+      </hlm-dialog-content>
+    </hlm-dialog>
   `,
 })
 export class AdminReviews {
+  private readonly fb = inject(FormBuilder);
   private readonly reviewsService = inject(ReviewsService);
 
   @ViewChild('detailDialogRef') private detailDialogRef!: HlmDialog;
+  @ViewChild('decisionDialogRef') private decisionDialogRef!: HlmDialog;
 
   protected readonly selectedReview = signal<ReviewResponse | null>(null);
+  protected readonly decisionStatus = signal<'Approved' | 'Rejected'>('Approved');
+  protected readonly submitting = signal(false);
+
+  protected readonly decisionForm = this.fb.nonNullable.group({
+    adminNotes: [''],
+  });
 
   protected readonly search = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
@@ -301,11 +348,44 @@ export class AdminReviews {
     this.detailDialogRef.open();
   }
 
-  protected decideFromDetail(status: 'Approved' | 'Rejected'): void {
+  protected openDecision(review: ReviewResponse, status: 'Approved' | 'Rejected'): void {
+    this.selectedReview.set(review);
+    this.decisionStatus.set(status);
+    this.decisionForm.reset({ adminNotes: '' });
+    this.decisionDialogRef.open();
+  }
+
+  protected openDecisionFromDetail(status: 'Approved' | 'Rejected'): void {
     const review = this.selectedReview();
     if (!review) return;
     this.detailDialogRef.close();
-    this.decideOne(review, status);
+    this.openDecision(review, status);
+  }
+
+  protected submitDecision(): void {
+    const review = this.selectedReview();
+    if (!review) return;
+    this.submitting.set(true);
+    this.actionError.set(null);
+
+    const { adminNotes } = this.decisionForm.getRawValue();
+    const request = { adminNotes: adminNotes || undefined };
+    const call = this.decisionStatus() === 'Approved'
+      ? this.reviewsService.approve(review.id, request)
+      : this.reviewsService.reject(review.id, request);
+
+    call.subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.decisionDialogRef.close();
+        this.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.submitting.set(false);
+        this.decisionDialogRef.close();
+        this.actionError.set(this.extractError(err, 'No se pudo guardar la decisión.'));
+      },
+    });
   }
 
   protected onSearchInput(event: Event): void {
@@ -334,16 +414,6 @@ export class AdminReviews {
       return;
     }
     this.selectedIds.set(new Set(this.page().data.map((r) => r.id)));
-  }
-
-  protected decideOne(review: ReviewResponse, status: 'Approved' | 'Rejected'): void {
-    this.actionError.set(null);
-    const call = status === 'Approved' ? this.reviewsService.approve(review.id) : this.reviewsService.reject(review.id);
-    call.subscribe({
-      next: () => this.reload(),
-      error: (err: HttpErrorResponse) =>
-        this.actionError.set(this.extractError(err, 'No se pudo guardar la decisión.')),
-    });
   }
 
   protected bulkDecide(status: 'Approved' | 'Rejected'): void {
