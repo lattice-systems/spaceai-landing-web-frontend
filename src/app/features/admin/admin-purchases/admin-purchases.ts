@@ -151,10 +151,14 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
                   <td hlmTd class="text-muted-foreground">{{ purchase.purchaseDate | date: 'mediumDate' }}</td>
                   <td hlmTd>{{ purchase.total | currency: 'USD' }}</td>
                   <td hlmTd>
-                    <span hlmBadge [variant]="purchase.status === 'Cancelled' ? 'secondary' : 'outline'" class="gap-1.5 font-normal">
-                      @if (purchase.status !== 'Cancelled') {
-                        <span class="bg-primary size-1.5 rounded-full"></span>
-                      }
+                    <span
+                      hlmBadge
+                      variant="outline"
+                      class="gap-1.5 font-normal"
+                      [style.background]="purchase.status === 'Cancelled' ? null : 'color-mix(in oklch, var(--chip-emerald) 14%, transparent)'"
+                      [style.color]="purchase.status === 'Cancelled' ? null : 'var(--chip-emerald)'"
+                      [style.border-color]="purchase.status === 'Cancelled' ? null : 'color-mix(in oklch, var(--chip-emerald) 35%, transparent)'"
+                    >
                       {{ purchase.status === 'Cancelled' ? 'Cancelada' : 'Completada' }}
                     </span>
                   </td>

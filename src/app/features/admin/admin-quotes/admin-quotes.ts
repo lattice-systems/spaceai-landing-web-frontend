@@ -137,22 +137,52 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
                   </td>
                   <td hlmTd>{{ quote.total | currency: 'USD' }}</td>
                   <td hlmTd>
-                    <span hlmBadge [variant]="statusVariant(quote.status)" class="gap-1.5 font-normal">
+                    <span
+                      hlmBadge
+                      variant="outline"
+                      class="gap-1.5 font-normal"
+                      [style.background]="statusChipBg(quote.status)"
+                      [style.color]="statusChipColor(quote.status)"
+                      [style.border-color]="statusChipBorder(quote.status)"
+                    >
                       {{ statusLabel(quote.status) }}
                     </span>
                   </td>
                   <td hlmTd class="text-muted-foreground">{{ quote.createdAt | date: 'mediumDate' }}</td>
                   <td hlmTd class="text-right">
-                    <button
-                      hlmBtn
-                      variant="ghost"
-                      size="icon"
-                      [hlmDropdownMenuTrigger]="rowMenu"
-                      align="end"
-                      aria-label="Acciones"
-                    >
-                      <ng-icon name="lucideEllipsis" />
-                    </button>
+                    <div class="flex items-center justify-end gap-1">
+                      @if (quote.status === 'Pending') {
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="sm"
+                          class="text-chip-emerald"
+                          style="color: var(--chip-emerald)"
+                          (click)="openDecision(quote, 'approve')"
+                        >
+                          Aprobar
+                        </button>
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="sm"
+                          class="text-destructive"
+                          (click)="openDecision(quote, 'reject')"
+                        >
+                          Rechazar
+                        </button>
+                      }
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="icon"
+                        [hlmDropdownMenuTrigger]="rowMenu"
+                        align="end"
+                        aria-label="Acciones"
+                      >
+                        <ng-icon name="lucideEllipsis" />
+                      </button>
+                    </div>
                     <ng-template #rowMenu>
                       <hlm-dropdown-menu class="min-w-48 rounded-lg">
                         <button hlmDropdownMenuItem (click)="openDetail(quote)">Ver detalle</button>
@@ -196,7 +226,17 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
           </p>
         </hlm-dialog-header>
         <div class="grid gap-4 py-2">
-          <div class="flex flex-wrap gap-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <span
+              hlmBadge
+              variant="outline"
+              class="gap-1.5 font-normal"
+              [style.background]="statusChipBg(selectedQuote()?.status ?? '')"
+              [style.color]="statusChipColor(selectedQuote()?.status ?? '')"
+              [style.border-color]="statusChipBorder(selectedQuote()?.status ?? '')"
+            >
+              {{ statusLabel(selectedQuote()?.status ?? '') }}
+            </span>
             @if (selectedQuote()?.institutionType) {
               <span hlmBadge variant="secondary" class="font-normal">{{ selectedQuote()?.institutionType }}</span>
             }
@@ -253,6 +293,10 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
         </div>
         <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
           <button hlmBtn type="button" variant="outline" hlmDialogClose>Cerrar</button>
+          @if (selectedQuote()?.status === 'Pending') {
+            <button hlmBtn type="button" variant="outline" (click)="openDecisionFromDetail('reject')">Rechazar</button>
+            <button hlmBtn type="button" (click)="openDecisionFromDetail('approve')">Aprobar</button>
+          }
         </hlm-dialog-footer>
       </hlm-dialog-content>
     </hlm-dialog>
@@ -340,10 +384,26 @@ export class AdminQuotes {
     return 'Pendiente';
   }
 
-  protected statusVariant(status: string): 'default' | 'outline' | 'destructive' {
-    if (status === 'Approved') return 'default';
-    if (status === 'Rejected') return 'destructive';
-    return 'outline';
+  private statusChip(status: string): string | null {
+    if (status === 'Approved') return '--chip-emerald';
+    if (status === 'Rejected') return '--chip-rose';
+    if (status === 'Pending') return '--chip-amber';
+    return null;
+  }
+
+  protected statusChipBg(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
+  }
+
+  protected statusChipColor(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `var(${chip})` : null;
+  }
+
+  protected statusChipBorder(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
   }
 
   protected onSearchInput(event: Event): void {
@@ -370,6 +430,13 @@ export class AdminQuotes {
     this.decisionKind.set(kind);
     this.decisionForm.reset({ adminNotes: '' });
     this.decisionDialogRef.open();
+  }
+
+  protected openDecisionFromDetail(kind: DecisionKind): void {
+    const quote = this.selectedQuote();
+    if (!quote) return;
+    this.detailDialogRef.close();
+    this.openDecision(quote, kind);
   }
 
   protected submitDecision(): void {

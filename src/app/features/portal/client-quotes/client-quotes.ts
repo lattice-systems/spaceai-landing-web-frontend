@@ -57,7 +57,14 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
                   <td hlmTd class="text-foreground font-medium">{{ quote.institutionName }}</td>
                   <td hlmTd>{{ quote.total | currency: 'USD' }}</td>
                   <td hlmTd>
-                    <span hlmBadge [variant]="statusVariant(quote.status)" class="font-normal">
+                    <span
+                      hlmBadge
+                      variant="outline"
+                      class="gap-1.5 font-normal"
+                      [style.background]="statusChipBg(quote.status)"
+                      [style.color]="statusChipColor(quote.status)"
+                      [style.border-color]="statusChipBorder(quote.status)"
+                    >
                       {{ statusLabel(quote.status) }}
                     </span>
                   </td>
@@ -162,10 +169,26 @@ export class ClientQuotes {
     return 'Pendiente';
   }
 
-  protected statusVariant(status: string): 'default' | 'outline' | 'destructive' {
-    if (status === 'Approved') return 'default';
-    if (status === 'Rejected') return 'destructive';
-    return 'outline';
+  private statusChip(status: string): string | null {
+    if (status === 'Approved') return '--chip-emerald';
+    if (status === 'Rejected') return '--chip-rose';
+    if (status === 'Pending') return '--chip-amber';
+    return null;
+  }
+
+  protected statusChipBg(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
+  }
+
+  protected statusChipColor(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `var(${chip})` : null;
+  }
+
+  protected statusChipBorder(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
   }
 
   protected openDetail(quote: QuoteResponse): void {

@@ -1,13 +1,21 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideSearch, lucideStar, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
+import {
+  lucideBuilding2,
+  lucideCheck,
+  lucideSearch,
+  lucideStar,
+  lucideTriangleAlert,
+  lucideX,
+} from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
+import { HlmDialogImports, HlmDialog } from '@spartan-ng/helm/dialog';
 import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
@@ -31,8 +39,11 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
     HlmBadgeImports,
     HlmCheckboxImports,
     HlmPaginationImports,
+    HlmDialogImports,
   ],
-  providers: [provideIcons({ lucideSearch, lucideStar, lucideTriangleAlert, lucideX })],
+  providers: [
+    provideIcons({ lucideBuilding2, lucideCheck, lucideSearch, lucideStar, lucideTriangleAlert, lucideX }),
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
@@ -120,12 +131,37 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
                   <td hlmTd>
                     <hlm-checkbox [checked]="selectedIds().has(review.id)" (checkedChange)="toggleSelect(review.id)" />
                   </td>
-                  <td hlmTd class="font-medium whitespace-nowrap">{{ review.institutionName }}</td>
+                  <td hlmTd class="font-medium whitespace-nowrap">
+                    <button type="button" class="hover:text-primary cursor-pointer text-left" (click)="openDetail(review)">
+                      {{ review.institutionName }}
+                    </button>
+                  </td>
                   <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ review.productName }}</td>
-                  <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ review.rating }}/5</td>
-                  <td hlmTd class="text-muted-foreground max-w-md">{{ review.comment }}</td>
+                  <td hlmTd class="text-muted-foreground whitespace-nowrap">
+                    <span class="text-chip-amber inline-flex items-center gap-0.5" style="color: var(--chip-amber)">
+                      @for (s of starsFor(review.rating); track $index) {
+                        <ng-icon name="lucideStar" [class.opacity-25]="!s" class="text-sm" />
+                      }
+                    </span>
+                  </td>
+                  <td hlmTd class="text-muted-foreground max-w-md">
+                    <button
+                      type="button"
+                      class="hover:text-foreground line-clamp-2 cursor-pointer text-left"
+                      (click)="openDetail(review)"
+                    >
+                      {{ review.comment }}
+                    </button>
+                  </td>
                   <td hlmTd class="whitespace-nowrap">
-                    <span hlmBadge [variant]="statusVariant(review.status)" class="font-normal">
+                    <span
+                      hlmBadge
+                      variant="outline"
+                      class="gap-1.5 font-normal"
+                      [style.background]="statusChipBg(review.status)"
+                      [style.color]="statusChipColor(review.status)"
+                      [style.border-color]="statusChipBorder(review.status)"
+                    >
                       {{ statusLabel(review.status) }}
                     </span>
                   </td>
@@ -136,6 +172,8 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
                         <button hlmBtn size="sm" (click)="decideOne(review, 'Approved')">Aprobar</button>
                         <button hlmBtn size="sm" variant="outline" (click)="decideOne(review, 'Rejected')">Rechazar</button>
                       </div>
+                    } @else {
+                      <button hlmBtn size="sm" variant="ghost" (click)="openDetail(review)">Ver detalle</button>
                     }
                   </td>
                 </tr>
@@ -158,10 +196,63 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
         />
       </div>
     </section>
+
+    <!-- Ver detalle -->
+    <hlm-dialog #detailDialogRef="hlmDialog">
+      <hlm-dialog-content *hlmDialogPortal class="w-full sm:max-w-lg">
+        <hlm-dialog-header>
+          <h3 hlmDialogTitle>{{ selectedReview()?.institutionName }}</h3>
+          <p hlmDialogDescription class="flex items-center gap-1.5">
+            <ng-icon name="lucideBuilding2" class="text-sm" />
+            {{ selectedReview()?.contactPerson }} · {{ selectedReview()?.productName }}
+          </p>
+        </hlm-dialog-header>
+        <div class="grid gap-4 py-2">
+          <div class="flex flex-wrap items-center gap-3">
+            <span
+              hlmBadge
+              variant="outline"
+              class="gap-1.5 font-normal"
+              [style.background]="statusChipBg(selectedReview()?.status ?? '')"
+              [style.color]="statusChipColor(selectedReview()?.status ?? '')"
+              [style.border-color]="statusChipBorder(selectedReview()?.status ?? '')"
+            >
+              {{ statusLabel(selectedReview()?.status ?? '') }}
+            </span>
+            <span class="inline-flex items-center gap-0.5" style="color: var(--chip-amber)">
+              @for (s of starsFor(selectedReview()?.rating ?? 0); track $index) {
+                <ng-icon name="lucideStar" [class.opacity-25]="!s" class="text-base" />
+              }
+            </span>
+            <span class="text-muted-foreground text-sm">{{ selectedReview()?.rating }}/5</span>
+            <span class="text-muted-foreground ml-auto text-xs">
+              {{ selectedReview()?.createdAt | date: 'medium' }}
+            </span>
+          </div>
+          <p class="text-foreground border-border bg-muted/30 rounded-lg border p-3 text-sm leading-6 whitespace-pre-line">
+            {{ selectedReview()?.comment }}
+          </p>
+        </div>
+        <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
+          <button hlmBtn type="button" variant="outline" hlmDialogClose>Cerrar</button>
+          @if (selectedReview()?.status === 'Pending') {
+            <button hlmBtn type="button" variant="outline" (click)="decideFromDetail('Rejected')">Rechazar</button>
+            <button hlmBtn type="button" (click)="decideFromDetail('Approved')">
+              <ng-icon name="lucideCheck" class="mr-1" />
+              Aprobar
+            </button>
+          }
+        </hlm-dialog-footer>
+      </hlm-dialog-content>
+    </hlm-dialog>
   `,
 })
 export class AdminReviews {
   private readonly reviewsService = inject(ReviewsService);
+
+  @ViewChild('detailDialogRef') private detailDialogRef!: HlmDialog;
+
+  protected readonly selectedReview = signal<ReviewResponse | null>(null);
 
   protected readonly search = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
@@ -207,10 +298,42 @@ export class AdminReviews {
     return 'Pendiente';
   }
 
-  protected statusVariant(status: string): 'default' | 'outline' | 'secondary' {
-    if (status === 'Approved') return 'default';
-    if (status === 'Rejected') return 'outline';
-    return 'secondary';
+  private statusChip(status: string): string | null {
+    if (status === 'Approved') return '--chip-emerald';
+    if (status === 'Rejected') return '--chip-rose';
+    if (status === 'Pending') return '--chip-amber';
+    return null;
+  }
+
+  protected statusChipBg(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
+  }
+
+  protected statusChipColor(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `var(${chip})` : null;
+  }
+
+  protected statusChipBorder(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
+  }
+
+  protected starsFor(rating: number): boolean[] {
+    return Array.from({ length: 5 }, (_, i) => i < rating);
+  }
+
+  protected openDetail(review: ReviewResponse): void {
+    this.selectedReview.set(review);
+    this.detailDialogRef.open();
+  }
+
+  protected decideFromDetail(status: 'Approved' | 'Rejected'): void {
+    const review = this.selectedReview();
+    if (!review) return;
+    this.detailDialogRef.close();
+    this.decideOne(review, status);
   }
 
   protected onSearchInput(event: Event): void {

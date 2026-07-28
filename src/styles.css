@@ -57,6 +57,8 @@
   --chip-violet: oklch(0.58 0.19 302);
   --chip-amber: oklch(0.75 0.15 75);
   --chip-emerald: oklch(0.72 0.17 155);
+  --chip-sky: oklch(0.62 0.15 235);
+  --chip-rose: oklch(0.62 0.21 18);
 }
 
 :root.dark {

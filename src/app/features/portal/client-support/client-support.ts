@@ -78,7 +78,14 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
                   <p class="text-muted-foreground mt-2 text-xs">{{ ticket.createdAt | date: 'mediumDate' }}</p>
                 </div>
                 <div class="flex flex-col items-end gap-1.5">
-                  <span hlmBadge [variant]="statusVariant(ticket.status)" class="font-normal">
+                  <span
+                    hlmBadge
+                    variant="outline"
+                    class="gap-1.5 font-normal"
+                    [style.background]="statusChipBg(ticket.status)"
+                    [style.color]="statusChipColor(ticket.status)"
+                    [style.border-color]="statusChipBorder(ticket.status)"
+                  >
                     {{ statusLabel(ticket.status) }}
                   </span>
                   <span hlmBadge variant="outline" class="font-normal">{{ priorityLabel(ticket.priority) }}</span>
@@ -138,7 +145,14 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
         </hlm-dialog-header>
         <div class="grid gap-3 py-2">
           <div class="flex gap-2">
-            <span hlmBadge [variant]="statusVariant(selectedTicket()?.status ?? '')" class="font-normal">
+            <span
+              hlmBadge
+              variant="outline"
+              class="gap-1.5 font-normal"
+              [style.background]="statusChipBg(selectedTicket()?.status ?? '')"
+              [style.color]="statusChipColor(selectedTicket()?.status ?? '')"
+              [style.border-color]="statusChipBorder(selectedTicket()?.status ?? '')"
+            >
               {{ statusLabel(selectedTicket()?.status ?? '') }}
             </span>
             <span hlmBadge variant="outline" class="font-normal">{{ priorityLabel(selectedTicket()?.priority ?? '') }}</span>
@@ -184,10 +198,25 @@ export class ClientSupport {
     return 'Abierto';
   }
 
-  protected statusVariant(status: string): 'default' | 'outline' | 'secondary' {
-    if (status === 'Closed') return 'outline';
-    if (status === 'InProgress') return 'default';
-    return 'secondary';
+  private statusChip(status: string): string | null {
+    if (status === 'InProgress') return '--chip-amber';
+    if (status === 'Open') return '--chip-sky';
+    return null;
+  }
+
+  protected statusChipBg(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
+  }
+
+  protected statusChipColor(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `var(${chip})` : null;
+  }
+
+  protected statusChipBorder(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
   }
 
   protected priorityLabel(priority: string): string {

@@ -3,7 +3,15 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideEllipsis, lucideMail, lucideSearch, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
+import {
+  lucideCheck,
+  lucideCopy,
+  lucideEllipsis,
+  lucideMail,
+  lucideSearch,
+  lucideTriangleAlert,
+  lucideX,
+} from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -36,7 +44,9 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
     HlmDialogImports,
     HlmPaginationImports,
   ],
-  providers: [provideIcons({ lucideEllipsis, lucideMail, lucideSearch, lucideTriangleAlert, lucideX })],
+  providers: [
+    provideIcons({ lucideCheck, lucideCopy, lucideEllipsis, lucideMail, lucideSearch, lucideTriangleAlert, lucideX }),
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
@@ -144,25 +154,47 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
                     </button>
                   </td>
                   <td hlmTd>
-                    <span hlmBadge [variant]="statusVariant(msg.status)" class="font-normal">
+                    <span
+                      hlmBadge
+                      variant="outline"
+                      class="gap-1.5 font-normal"
+                      [style.background]="statusChipBg(msg.status)"
+                      [style.color]="statusChipColor(msg.status)"
+                      [style.border-color]="statusChipBorder(msg.status)"
+                    >
                       {{ statusLabel(msg.status) }}
                     </span>
                   </td>
                   <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ msg.createdAt | date: 'mediumDate' }}</td>
                   <td hlmTd class="text-right">
-                    <button
-                      hlmBtn
-                      variant="ghost"
-                      size="icon"
-                      [hlmDropdownMenuTrigger]="rowMenu"
-                      align="end"
-                      aria-label="Acciones"
-                    >
-                      <ng-icon name="lucideEllipsis" />
-                    </button>
+                    <div class="flex items-center justify-end gap-1">
+                      @if (msg.status !== 'Answered') {
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Marcar atendido"
+                          title="Marcar atendido"
+                          (click)="markAnswered(msg)"
+                        >
+                          <ng-icon name="lucideCheck" />
+                        </button>
+                      }
+                      <button
+                        hlmBtn
+                        variant="ghost"
+                        size="icon"
+                        [hlmDropdownMenuTrigger]="rowMenu"
+                        align="end"
+                        aria-label="Acciones"
+                      >
+                        <ng-icon name="lucideEllipsis" />
+                      </button>
+                    </div>
                     <ng-template #rowMenu>
                       <hlm-dropdown-menu class="min-w-48 rounded-lg">
                         <button hlmDropdownMenuItem (click)="openDetail(msg)">Ver mensaje</button>
+                        <button hlmDropdownMenuItem (click)="copyEmail(msg)">Copiar correo</button>
                         <hlm-dropdown-menu-separator />
                         @if (msg.status !== 'Answered') {
                           <button hlmDropdownMenuItem (click)="markAnswered(msg)">Marcar atendido</button>
@@ -207,7 +239,14 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
         </hlm-dialog-header>
         <div class="grid gap-4 py-2">
           <div class="flex items-center gap-2">
-            <span hlmBadge [variant]="statusVariant(selectedMessage()?.status ?? '')" class="font-normal">
+            <span
+              hlmBadge
+              variant="outline"
+              class="gap-1.5 font-normal"
+              [style.background]="statusChipBg(selectedMessage()?.status ?? '')"
+              [style.color]="statusChipColor(selectedMessage()?.status ?? '')"
+              [style.border-color]="statusChipBorder(selectedMessage()?.status ?? '')"
+            >
               {{ statusLabel(selectedMessage()?.status ?? '') }}
             </span>
             <span class="text-muted-foreground text-xs">{{ selectedMessage()?.createdAt | date: 'medium' }}</span>
@@ -217,6 +256,10 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
           </p>
         </div>
         <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
+          <button hlmBtn type="button" variant="outline" (click)="copyEmail(selectedMessage()!)">
+            <ng-icon name="lucideCopy" class="mr-1" />
+            Copiar correo
+          </button>
           <button hlmBtn type="button" variant="outline" hlmDialogClose>Cerrar</button>
           @if (selectedMessage()?.status !== 'Answered') {
             <button hlmBtn type="button" (click)="markAnsweredFromDetail()">Marcar atendido</button>
@@ -279,10 +322,29 @@ export class AdminMessages {
     return 'Pendiente';
   }
 
-  protected statusVariant(status: string): 'default' | 'outline' | 'secondary' {
-    if (status === 'Answered') return 'default';
-    if (status === 'Archived') return 'outline';
-    return 'secondary';
+  private statusChip(status: string): string | null {
+    if (status === 'Answered') return '--chip-emerald';
+    if (status === 'Pending') return '--chip-amber';
+    return null;
+  }
+
+  protected statusChipBg(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 14%, transparent)` : null;
+  }
+
+  protected statusChipColor(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `var(${chip})` : null;
+  }
+
+  protected statusChipBorder(status: string): string | null {
+    const chip = this.statusChip(status);
+    return chip ? `color-mix(in oklch, var(${chip}) 35%, transparent)` : null;
+  }
+
+  protected copyEmail(message: ContactMessageResponse): void {
+    navigator.clipboard?.writeText(message.email);
   }
 
   protected onSearchInput(event: Event): void {
