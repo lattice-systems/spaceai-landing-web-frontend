@@ -112,67 +112,72 @@ const EMPTY_SUMMARY: DashboardSummaryResponse = {
         </a>
       </div>
 
-      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div hlmCard>
-          <div hlmCardContent>
-            <p class="text-muted-foreground text-sm">Proveedores activos</p>
-            <p class="text-foreground mt-2 text-2xl font-semibold">{{ summary().activeProviders }}</p>
-          </div>
-        </div>
-        <div hlmCard>
-          <div hlmCardContent>
-            <p class="text-muted-foreground text-sm">Clientes registrados</p>
-            <p class="text-foreground mt-2 text-2xl font-semibold">{{ summary().totalClients }}</p>
-          </div>
-        </div>
-        <div hlmCard>
-          <div hlmCardContent>
-            <p class="text-muted-foreground text-sm">Compras del mes</p>
-            <p class="text-foreground mt-2 text-2xl font-semibold">
-              {{ summary().monthlyPurchasesTotal | currency: 'USD' }}
-            </p>
-          </div>
-        </div>
-        <div hlmCard>
-          <div hlmCardContent>
-            <p class="text-muted-foreground text-sm">Cotizaciones aprobadas (mes)</p>
-            <p class="text-foreground mt-2 text-2xl font-semibold">
-              {{ summary().monthlyApprovedQuotesTotal | currency: 'USD' }}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid gap-3 lg:grid-cols-[1.2fr_0.8fr]">
+      <div class="grid gap-3 lg:grid-cols-[0.9fr_1.1fr_0.8fr]">
         <div hlmCard>
           <div hlmCardHeader>
             <h2 hlmCardTitle>Cotizaciones por estado</h2>
-            <p hlmCardDescription>Desglose de todo el histórico registrado.</p>
+            <p hlmCardDescription>Histórico completo registrado.</p>
           </div>
-          <div hlmCardContent class="grid gap-4">
+          <div hlmCardContent class="flex items-center gap-5">
             @if (totalQuotes() > 0) {
-              <div class="bg-muted flex h-3 overflow-hidden rounded-full">
-                <div class="bg-primary h-full" [style.width.%]="pct(summary().quotesByStatus.pending)"></div>
-                <div class="bg-foreground h-full" [style.width.%]="pct(summary().quotesByStatus.approved)"></div>
-                <div class="bg-destructive h-full" [style.width.%]="pct(summary().quotesByStatus.rejected)"></div>
+              <div
+                class="relative size-28 shrink-0 rounded-full transition-[background] duration-700 ease-out"
+                [style.background]="donutGradient()"
+              >
+                <div class="bg-card absolute inset-2.5 flex flex-col items-center justify-center rounded-full">
+                  <span class="text-foreground text-2xl font-semibold tabular-nums">{{ totalQuotes() }}</span>
+                  <span class="text-muted-foreground text-[10px] tracking-wide uppercase">total</span>
+                </div>
               </div>
-              <div class="flex flex-wrap gap-4 text-sm">
+              <div class="grid gap-2.5 text-sm">
                 <span class="flex items-center gap-2">
-                  <span class="bg-primary size-2.5 rounded-full"></span>
-                  Pendientes · {{ summary().quotesByStatus.pending }}
+                  <span class="bg-primary size-2.5 shrink-0 rounded-full"></span>
+                  <span class="text-foreground font-medium">{{ summary().quotesByStatus.pending }}</span>
+                  <span class="text-muted-foreground">pendientes</span>
                 </span>
                 <span class="flex items-center gap-2">
-                  <span class="bg-foreground size-2.5 rounded-full"></span>
-                  Aprobadas · {{ summary().quotesByStatus.approved }}
+                  <span class="size-2.5 shrink-0 rounded-full" style="background: var(--quote-approved)"></span>
+                  <span class="text-foreground font-medium">{{ summary().quotesByStatus.approved }}</span>
+                  <span class="text-muted-foreground">aprobadas</span>
                 </span>
                 <span class="flex items-center gap-2">
-                  <span class="bg-destructive size-2.5 rounded-full"></span>
-                  Rechazadas · {{ summary().quotesByStatus.rejected }}
+                  <span class="bg-destructive size-2.5 shrink-0 rounded-full"></span>
+                  <span class="text-foreground font-medium">{{ summary().quotesByStatus.rejected }}</span>
+                  <span class="text-muted-foreground">rechazadas</span>
                 </span>
               </div>
             } @else {
               <p class="text-muted-foreground text-sm">Aún no hay cotizaciones registradas.</p>
             }
+          </div>
+        </div>
+
+        <div hlmCard>
+          <div hlmCardHeader>
+            <h2 hlmCardTitle>Pulso del negocio</h2>
+            <p hlmCardDescription>Mes en curso.</p>
+          </div>
+          <div hlmCardContent class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-muted-foreground text-xs">Proveedores activos</p>
+              <p class="text-foreground mt-1 text-xl font-semibold tabular-nums">{{ summary().activeProviders }}</p>
+            </div>
+            <div>
+              <p class="text-muted-foreground text-xs">Clientes registrados</p>
+              <p class="text-foreground mt-1 text-xl font-semibold tabular-nums">{{ summary().totalClients }}</p>
+            </div>
+            <div>
+              <p class="text-muted-foreground text-xs">Compras del mes</p>
+              <p class="text-foreground mt-1 text-xl font-semibold tabular-nums">
+                {{ summary().monthlyPurchasesTotal | currency: 'USD' }}
+              </p>
+            </div>
+            <div>
+              <p class="text-muted-foreground text-xs">Cotizaciones aprobadas</p>
+              <p class="text-foreground mt-1 text-xl font-semibold tabular-nums">
+                {{ summary().monthlyApprovedQuotesTotal | currency: 'USD' }}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -197,10 +202,6 @@ const EMPTY_SUMMARY: DashboardSummaryResponse = {
               <ng-icon name="lucideUsers" class="mr-2" />
               Gestionar usuarios
             </a>
-            <a hlmBtn variant="outline" class="justify-start" routerLink="/admin/proveedores">
-              <ng-icon name="lucideTruck" class="mr-2" />
-              Ver proveedores
-            </a>
           </div>
         </div>
       </div>
@@ -215,6 +216,23 @@ export class AdminDashboard {
   protected readonly totalQuotes = computed(() => {
     const s = this.summary().quotesByStatus;
     return s.pending + s.approved + s.rejected;
+  });
+
+  // Donut chart vía conic-gradient puro (sin librería) — más llamativo que la barra plana
+  // anterior y sigue transicionando suave (background-transition) cuando cambian los datos.
+  protected readonly donutGradient = computed(() => {
+    const { pending, approved, rejected } = this.summary().quotesByStatus;
+    const total = pending + approved + rejected;
+    if (total === 0) return 'var(--muted)';
+
+    const pendingEnd = (pending / total) * 100;
+    const approvedEnd = pendingEnd + (approved / total) * 100;
+
+    return (
+      `conic-gradient(var(--primary) 0% ${pendingEnd}%, ` +
+      `var(--quote-approved) ${pendingEnd}% ${approvedEnd}%, ` +
+      `var(--destructive) ${approvedEnd}% 100%)`
+    );
   });
 
   protected pct(count: number): number {

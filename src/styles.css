@@ -19,63 +19,71 @@
     sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.609 0.126 221.723);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.609 0.126 221.723);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.609 0.126 221.723);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.609 0.126 221.723);
+  /* Tinted neutrals (small chroma toward the primary hue, 250) instead of flat
+     chroma-0 grays — this is what makes the app feel less "washed out". */
+  --background: oklch(0.984 0.006 250);
+  --foreground: oklch(0.18 0.014 258);
+  --card: oklch(0.995 0.003 250);
+  --card-foreground: oklch(0.18 0.014 258);
+  --popover: oklch(0.995 0.003 250);
+  --popover-foreground: oklch(0.18 0.014 258);
+  --primary: oklch(0.551 0.202 258);
+  --primary-foreground: oklch(0.985 0.005 250);
+  --secondary: oklch(0.955 0.012 250);
+  --secondary-foreground: oklch(0.28 0.02 258);
+  --muted: oklch(0.955 0.012 250);
+  --muted-foreground: oklch(0.5 0.02 258);
+  --accent: oklch(0.93 0.03 258);
+  --accent-foreground: oklch(0.32 0.05 258);
+  --destructive: oklch(0.577 0.215 25);
+  --border: oklch(0.906 0.010 250);
+  --input: oklch(0.906 0.010 250);
+  --ring: oklch(0.551 0.202 258);
+  --sidebar: oklch(0.972 0.008 250);
+  --sidebar-foreground: oklch(0.22 0.016 258);
+  --sidebar-primary: oklch(0.551 0.202 258);
+  --sidebar-primary-foreground: oklch(0.985 0.005 250);
+  --sidebar-accent: oklch(0.90 0.028 258);
+  --sidebar-accent-foreground: oklch(0.28 0.05 258);
+  --sidebar-border: oklch(0.906 0.010 250);
+  --sidebar-ring: oklch(0.551 0.202 258);
+
+  /* Dedicated data-viz token (dashboard charts only) — deliberately a distinct
+     hue from --primary so categorical chart segments stay readable; not part
+     of the UI-chrome accent, which stays single-accent per the design system. */
+  --quote-approved: oklch(0.72 0.17 155);
 }
 
 :root.dark {
   color-scheme: dark;
 
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.789 0.154 211.530);
-  --primary-foreground: oklch(0.145 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  --background: oklch(0.16 0.014 258);
+  --foreground: oklch(0.96 0.006 250);
+  --card: oklch(0.21 0.016 258);
+  --card-foreground: oklch(0.96 0.006 250);
+  --popover: oklch(0.21 0.016 258);
+  --popover-foreground: oklch(0.96 0.006 250);
+  --primary: oklch(0.72 0.16 258);
+  --primary-foreground: oklch(0.16 0.014 258);
+  --secondary: oklch(0.27 0.018 258);
+  --secondary-foreground: oklch(0.96 0.006 250);
+  --muted: oklch(0.27 0.018 258);
+  --muted-foreground: oklch(0.68 0.02 258);
+  --accent: oklch(0.31 0.04 258);
+  --accent-foreground: oklch(0.96 0.006 250);
+  --destructive: oklch(0.66 0.19 22);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.789 0.154 211.530);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.789 0.154 211.530);
-  --sidebar-primary-foreground: oklch(0.145 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.72 0.16 258);
+  --sidebar: oklch(0.19 0.015 258);
+  --sidebar-foreground: oklch(0.96 0.006 250);
+  --sidebar-primary: oklch(0.72 0.16 258);
+  --sidebar-primary-foreground: oklch(0.16 0.014 258);
+  --sidebar-accent: oklch(0.30 0.035 258);
+  --sidebar-accent-foreground: oklch(0.96 0.006 250);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.789 0.154 211.530);
+  --sidebar-ring: oklch(0.72 0.16 258);
+  --quote-approved: oklch(0.74 0.16 155);
 }
 
 @layer base {
