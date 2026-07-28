@@ -7,6 +7,7 @@ import {
   lucideBox,
   lucideChevronsUpDown,
   lucideHome,
+  lucideLayoutDashboard,
   lucideLogOut,
   lucideMail,
   lucidePackage,
@@ -23,6 +24,7 @@ import { HlmSidebarImports, HlmSidebarService } from '@spartan-ng/helm/sidebar';
 import { AuthService } from '../../core/services/auth.service';
 
 const MAIN_NAV = [
+  { label: 'Inicio', route: '/admin/dashboard', icon: 'lucideLayoutDashboard' },
   { label: 'Usuarios', route: '/admin/usuarios', icon: 'lucideUsers' },
   { label: 'Catálogo', route: '/admin/productos', icon: 'lucideBox' },
   { label: 'Materia prima', route: '/admin/materiales', icon: 'lucideBeaker' },
@@ -53,6 +55,7 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
       lucideBox,
       lucideChevronsUpDown,
       lucideHome,
+      lucideLayoutDashboard,
       lucideLogOut,
       lucideMail,
       lucidePackage,

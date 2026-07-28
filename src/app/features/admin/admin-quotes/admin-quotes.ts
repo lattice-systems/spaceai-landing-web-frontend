@@ -2,6 +2,7 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, effect, inject, signal, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideEllipsis, lucideSearch, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
@@ -308,6 +309,13 @@ export class AdminQuotes {
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
   constructor() {
+    // Deep-link desde el dashboard (?status=Pending): fija el filtro inicial antes de que
+    // corra el efecto de recarga, así el KPI aterriza ya filtrado.
+    const initialStatus = inject(ActivatedRoute).snapshot.queryParamMap.get('status');
+    if (initialStatus === 'Pending' || initialStatus === 'Approved' || initialStatus === 'Rejected') {
+      this.statusFilter.set(initialStatus);
+    }
+
     // Efecto central: cualquier cambio de búsqueda/filtro/página dispara una sola recarga.
     effect(() => {
       this.search();

@@ -2,6 +2,7 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideEllipsis,
@@ -444,6 +445,12 @@ export class AdminMaterials {
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
   constructor() {
+    // Deep-link desde el dashboard (?lowStock=true): fija el filtro inicial antes de que
+    // corra el efecto de recarga, así el KPI aterriza ya filtrado.
+    if (inject(ActivatedRoute).snapshot.queryParamMap.get('lowStock') === 'true') {
+      this.stockFilter.set('low');
+    }
+
     // Efecto central: cualquier cambio de búsqueda/filtro/página dispara una sola recarga.
     effect(() => {
       this.search();
