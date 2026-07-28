@@ -4,8 +4,10 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  Injector,
   computed,
   inject,
+  runInInjectionContext,
   signal,
   viewChildren,
 } from '@angular/core';
@@ -153,6 +155,7 @@ export class Testimonios {
   protected readonly current = computed(() => this.testimonios()[this.idx()]);
 
   private readonly destroyRef   = inject(DestroyRef);
+  private readonly injector     = inject(Injector);
   private readonly sectionRef   = viewChildren<ElementRef>('sectionEl');
   private readonly cardBodyRef  = viewChildren<ElementRef>('cardBody');
 
@@ -177,22 +180,26 @@ export class Testimonios {
   }
 
   private armIntersectionObserver(): void {
-    afterNextRender(() => {
-      const el = this.sectionRef()[0]?.nativeElement as HTMLElement | undefined;
-      if (!el) return;
+    // Se dispara desde el callback async del subscribe (fuera del constructor), así que
+    // afterNextRender necesita un contexto de inyección explícito.
+    runInInjectionContext(this.injector, () => {
+      afterNextRender(() => {
+        const el = this.sectionRef()[0]?.nativeElement as HTMLElement | undefined;
+        if (!el) return;
 
-      const obs = new IntersectionObserver(([e]) => {
-        if (e.isIntersecting) {
-          el.closest('section')
-            ?.querySelectorAll<HTMLElement>('.section-anim')
-            .forEach(n => n.classList.add('visible'));
-          this.startAutoplay();
-          obs.disconnect();
-        }
-      }, { threshold: 0.1 });
-      obs.observe(el);
+        const obs = new IntersectionObserver(([e]) => {
+          if (e.isIntersecting) {
+            el.closest('section')
+              ?.querySelectorAll<HTMLElement>('.section-anim')
+              .forEach(n => n.classList.add('visible'));
+            this.startAutoplay();
+            obs.disconnect();
+          }
+        }, { threshold: 0.1 });
+        obs.observe(el);
 
-      this.destroyRef.onDestroy(() => clearInterval(this.timerId));
+        this.destroyRef.onDestroy(() => clearInterval(this.timerId));
+      });
     });
   }
 
