@@ -245,7 +245,7 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
         <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
           <button hlmBtn type="button" variant="outline" (click)="copyEmail(selectedMessage()!)">
             <ng-icon name="lucideCopy" class="mr-1" />
-            Copiar correo
+            {{ copiedEmail() === selectedMessage()?.email ? 'Copiado' : 'Copiar correo' }}
           </button>
           <button hlmBtn type="button" variant="outline" hlmDialogClose>Cerrar</button>
           @if (selectedMessage()?.status !== 'Answered') {
@@ -277,6 +277,7 @@ export class AdminMessages {
   protected readonly selectedIds = signal<Set<string>>(new Set());
   protected readonly selectedMessage = signal<ContactMessageResponse | null>(null);
   protected readonly actionError = signal<string | null>(null);
+  protected readonly copiedEmail = signal<string | null>(null);
 
   protected readonly allSelected = computed(() => {
     const data = this.page().data;
@@ -316,7 +317,10 @@ export class AdminMessages {
   }
 
   protected copyEmail(message: ContactMessageResponse): void {
-    navigator.clipboard?.writeText(message.email);
+    navigator.clipboard?.writeText(message.email).then(() => {
+      this.copiedEmail.set(message.email);
+      setTimeout(() => this.copiedEmail.set(null), 1500);
+    });
   }
 
   protected onSearchInput(event: Event): void {
