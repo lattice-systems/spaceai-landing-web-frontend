@@ -3,8 +3,8 @@ export interface ReviewResponse {
   clientId: string;
   institutionName: string;
   contactPerson: string;
-  productId: string;
-  productName: string;
+  productModuleId: string;
+  productModuleName: string;
   rating: number;
   comment: string;
   status: string;
@@ -12,7 +12,7 @@ export interface ReviewResponse {
 }
 
 export interface CreateReviewRequest {
-  productId: string;
+  productModuleId: string;
   rating: number;
   comment: string;
 }

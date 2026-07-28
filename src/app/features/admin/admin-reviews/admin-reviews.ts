@@ -71,7 +71,7 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
           <input
             hlmInput
             class="pl-9"
-            placeholder="Buscar por institución, producto o comentario…"
+            placeholder="Buscar por institución, módulo o comentario…"
             [value]="search()"
             (input)="onSearchInput($event)"
           />
@@ -117,7 +117,7 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
                   <hlm-checkbox [checked]="allSelected()" (checkedChange)="toggleSelectAll($event)" />
                 </th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Cliente</th>
-                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Producto</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Módulo</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Calificación</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Comentario</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Estado</th>
@@ -136,7 +136,7 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
                       {{ review.institutionName }}
                     </button>
                   </td>
-                  <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ review.productName }}</td>
+                  <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ review.productModuleName }}</td>
                   <td hlmTd class="text-muted-foreground whitespace-nowrap">
                     <span class="text-chip-amber inline-flex items-center gap-0.5" style="color: var(--chip-amber)">
                       @for (s of starsFor(review.rating); track $index) {
@@ -204,7 +204,7 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
           <h3 hlmDialogTitle>{{ selectedReview()?.institutionName }}</h3>
           <p hlmDialogDescription class="flex items-center gap-1.5">
             <ng-icon name="lucideBuilding2" class="text-sm" />
-            {{ selectedReview()?.contactPerson }} · {{ selectedReview()?.productName }}
+            {{ selectedReview()?.contactPerson }} · {{ selectedReview()?.productModuleName }}
           </p>
         </hlm-dialog-header>
         <div class="grid gap-4 py-2">

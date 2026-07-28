@@ -7,9 +7,9 @@ import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { AuthService } from '../../../core/services/auth.service';
-import { ProductResponse } from '../../../core/models/product.model';
+import { ProductModuleResponse } from '../../../core/models/product-module.model';
 import { ReviewResponse } from '../../../core/models/review.model';
-import { ProductsService } from '../../../core/services/products.service';
+import { ProductModulesService } from '../../../core/services/product-modules.service';
 import { ReviewsService } from '../../../core/services/reviews.service';
 
 @Component({
@@ -38,10 +38,10 @@ import { ReviewsService } from '../../../core/services/reviews.service';
         <section class="bg-muted/50 rounded-xl p-5">
           <h2 class="text-foreground mb-4 text-base font-semibold">Nueva opinión</h2>
           <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid gap-3">
-            <hlm-native-select formControlName="productId">
-              <option value="" disabled hlmNativeSelectOption>Producto</option>
-              @for (product of products(); track product.id) {
-                <option [value]="product.id" hlmNativeSelectOption>{{ product.name }}</option>
+            <hlm-native-select formControlName="productModuleId">
+              <option value="" disabled hlmNativeSelectOption>Módulo</option>
+              @for (module of productModules(); track module.id) {
+                <option [value]="module.id" hlmNativeSelectOption>{{ module.name }}</option>
               }
             </hlm-native-select>
             <hlm-native-select formControlName="rating">
@@ -72,7 +72,7 @@ import { ReviewsService } from '../../../core/services/reviews.service';
               <div hlmCard>
                 <div hlmCardContent>
                   <p class="text-foreground text-sm font-medium">
-                    {{ review.productName }} — {{ review.rating }}/5
+                    {{ review.productModuleName }} — {{ review.rating }}/5
                   </p>
                   <p class="text-muted-foreground mt-1 text-xs">{{ review.comment }}</p>
                   <span hlmBadge [variant]="statusVariant(review.status)" class="mt-2">
@@ -92,12 +92,12 @@ import { ReviewsService } from '../../../core/services/reviews.service';
 export class ClientReviews {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
-  private readonly productsService = inject(ProductsService);
+  private readonly productModulesService = inject(ProductModulesService);
   private readonly reviewsService = inject(ReviewsService);
 
   protected readonly submitting = signal(false);
   protected readonly submitted = signal(false);
-  protected readonly products = signal<ProductResponse[]>([]);
+  protected readonly productModules = signal<ProductModuleResponse[]>([]);
   private readonly allReviews = signal<ReviewResponse[]>([]);
 
   protected readonly myReviews = computed(() => {
@@ -118,13 +118,13 @@ export class ClientReviews {
   }
 
   protected readonly form = this.fb.nonNullable.group({
-    productId: ['', Validators.required],
+    productModuleId: ['', Validators.required],
     rating: ['', Validators.required],
     comment: ['', Validators.required],
   });
 
   constructor() {
-    this.productsService.listAll().subscribe((data) => this.products.set(data));
+    this.productModulesService.listAll().subscribe((data) => this.productModules.set(data));
     this.reload();
   }
 
@@ -133,12 +133,12 @@ export class ClientReviews {
     this.submitting.set(true);
     this.submitted.set(false);
 
-    const { productId, rating, comment } = this.form.getRawValue();
-    this.reviewsService.create({ productId, rating: Number(rating), comment }).subscribe({
+    const { productModuleId, rating, comment } = this.form.getRawValue();
+    this.reviewsService.create({ productModuleId, rating: Number(rating), comment }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.submitted.set(true);
-        this.form.reset({ productId: '', rating: '', comment: '' });
+        this.form.reset({ productModuleId: '', rating: '', comment: '' });
         this.reload();
       },
       error: () => this.submitting.set(false),
