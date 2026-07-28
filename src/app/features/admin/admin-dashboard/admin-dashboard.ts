@@ -59,7 +59,9 @@ const EMPTY_SUMMARY: DashboardSummaryResponse = {
               <p class="text-foreground mt-2 text-3xl font-semibold">{{ summary().pendingQuotes }}</p>
               <p class="text-muted-foreground mt-1 text-xs">Esperan aprobar o rechazar</p>
             </div>
-            <ng-icon name="lucideQuote" class="text-muted-foreground text-xl" />
+            <span class="bg-primary/12 text-primary flex size-10 shrink-0 items-center justify-center rounded-full">
+              <ng-icon name="lucideQuote" class="text-lg" />
+            </span>
           </div>
         </a>
 
@@ -75,7 +77,12 @@ const EMPTY_SUMMARY: DashboardSummaryResponse = {
               <p class="text-foreground mt-2 text-3xl font-semibold">{{ summary().pendingMessages }}</p>
               <p class="text-muted-foreground mt-1 text-xs">Cola de contacto</p>
             </div>
-            <ng-icon name="lucideMail" class="text-muted-foreground text-xl" />
+            <span
+              class="flex size-10 shrink-0 items-center justify-center rounded-full"
+              style="background: color-mix(in oklch, var(--chip-violet) 14%, transparent); color: var(--chip-violet)"
+            >
+              <ng-icon name="lucideMail" class="text-lg" />
+            </span>
           </div>
         </a>
 
@@ -91,7 +98,12 @@ const EMPTY_SUMMARY: DashboardSummaryResponse = {
               <p class="text-foreground mt-2 text-3xl font-semibold">{{ summary().pendingReviews }}</p>
               <p class="text-muted-foreground mt-1 text-xs">Pendientes de aprobar/rechazar</p>
             </div>
-            <ng-icon name="lucideStar" class="text-muted-foreground text-xl" />
+            <span
+              class="flex size-10 shrink-0 items-center justify-center rounded-full"
+              style="background: color-mix(in oklch, var(--chip-amber) 16%, transparent); color: var(--chip-amber)"
+            >
+              <ng-icon name="lucideStar" class="text-lg" />
+            </span>
           </div>
         </a>
 
@@ -107,7 +119,9 @@ const EMPTY_SUMMARY: DashboardSummaryResponse = {
               <p class="text-foreground mt-2 text-3xl font-semibold">{{ summary().lowStockMaterials }}</p>
               <p class="text-muted-foreground mt-1 text-xs">Por debajo del mínimo</p>
             </div>
-            <ng-icon name="lucideBeaker" class="text-muted-foreground text-xl" />
+            <span class="bg-destructive/12 text-destructive flex size-10 shrink-0 items-center justify-center rounded-full">
+              <ng-icon name="lucideBeaker" class="text-lg" />
+            </span>
           </div>
         </a>
       </div>
@@ -136,7 +150,7 @@ const EMPTY_SUMMARY: DashboardSummaryResponse = {
                   <span class="text-muted-foreground">pendientes</span>
                 </span>
                 <span class="flex items-center gap-2">
-                  <span class="size-2.5 shrink-0 rounded-full" style="background: var(--quote-approved)"></span>
+                  <span class="size-2.5 shrink-0 rounded-full" style="background: var(--chip-emerald)"></span>
                   <span class="text-foreground font-medium">{{ summary().quotesByStatus.approved }}</span>
                   <span class="text-muted-foreground">aprobadas</span>
                 </span>
