@@ -14,4 +14,12 @@ export interface ContactMessageResponse {
   institutionName?: string;
   message: string;
   status: string;
+  createdAt: string;
+}
+
+export interface ContactMessagesQuery {
+  pageNumber: number;
+  pageSize: number;
+  search?: string;
+  status?: string;
 }
