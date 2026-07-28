@@ -1,9 +1,17 @@
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideEllipsis, lucidePackage, lucidePencil, lucidePlus, lucideSearch, lucideTrash2 } from '@ng-icons/lucide';
+import {
+  lucideEllipsis,
+  lucideHistory,
+  lucidePackage,
+  lucidePencil,
+  lucidePlus,
+  lucideSearch,
+  lucideTrash2,
+} from '@ng-icons/lucide';
 import { HlmAlertDialogImports, HlmAlertDialog } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -16,7 +24,7 @@ import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { MaterialResponse } from '../../../core/models/material.model';
 import { ProductModuleResponse } from '../../../core/models/product-module.model';
-import { ProductRecipeResponse } from '../../../core/models/product-recipe.model';
+import { ProductRecipeHistoryItemResponse, ProductRecipeResponse } from '../../../core/models/product-recipe.model';
 import { MaterialsService } from '../../../core/services/materials.service';
 import { ProductModulesService } from '../../../core/services/product-modules.service';
 import { ProductRecipesService } from '../../../core/services/product-recipes.service';
@@ -32,6 +40,7 @@ interface RecipeGroup {
     ReactiveFormsModule,
     NgIcon,
     CurrencyPipe,
+    DatePipe,
     HlmButtonImports,
     HlmCardImports,
     HlmInputImports,
@@ -43,7 +52,9 @@ interface RecipeGroup {
     HlmDialogImports,
     HlmAlertDialogImports,
   ],
-  providers: [provideIcons({ lucideEllipsis, lucidePackage, lucidePencil, lucidePlus, lucideSearch, lucideTrash2 })],
+  providers: [
+    provideIcons({ lucideEllipsis, lucideHistory, lucidePackage, lucidePencil, lucidePlus, lucideSearch, lucideTrash2 }),
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
@@ -163,6 +174,10 @@ interface RecipeGroup {
                               <ng-icon name="lucidePencil" />
                               Editar cantidad
                             </button>
+                            <button hlmDropdownMenuItem (click)="openHistory(recipe)">
+                              <ng-icon name="lucideHistory" />
+                              Ver histórico
+                            </button>
                             <hlm-dropdown-menu-separator />
                             <button hlmDropdownMenuItem variant="destructive" (click)="openDeleteConfirm(recipe)">
                               <ng-icon name="lucideTrash2" />
@@ -265,6 +280,55 @@ interface RecipeGroup {
       </hlm-dialog-content>
     </hlm-dialog>
 
+    <!-- Histórico de versiones -->
+    <hlm-dialog #historyDialogRef="hlmDialog">
+      <hlm-dialog-content *hlmDialogPortal class="w-full sm:max-w-lg">
+        <hlm-dialog-header>
+          <h3 hlmDialogTitle>Histórico de versiones</h3>
+          <p hlmDialogDescription>
+            {{ selectedRecipe()?.materialName }} en {{ selectedRecipe()?.productModuleName }}
+          </p>
+        </hlm-dialog-header>
+        <div hlmTableContainer class="rounded-lg border">
+          <table hlmTable>
+            <thead hlmTHead>
+              <tr hlmTr class="bg-muted/40 hover:bg-muted/40">
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Fecha</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Cantidad</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Costo unit.</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Subtotal</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Estado</th>
+              </tr>
+            </thead>
+            <tbody hlmTBody>
+              @for (item of historyItems(); track item.id) {
+                <tr hlmTr>
+                  <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ item.createdAt | date: 'medium' }}</td>
+                  <td hlmTd>{{ item.quantity }}</td>
+                  <td hlmTd>{{ item.unitCost | currency: 'USD' }}</td>
+                  <td hlmTd>{{ item.subtotal | currency: 'USD' }}</td>
+                  <td hlmTd>
+                    @if (item.isCurrent) {
+                      <span hlmBadge class="font-normal">Vigente</span>
+                    } @else {
+                      <span hlmBadge variant="outline" class="font-normal">Reemplazada</span>
+                    }
+                  </td>
+                </tr>
+              } @empty {
+                <tr hlmTr>
+                  <td hlmTd colspan="5" class="text-muted-foreground text-center">Sin historial todavía.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
+          <button hlmBtn type="button" variant="outline" hlmDialogClose>Cerrar</button>
+        </hlm-dialog-footer>
+      </hlm-dialog-content>
+    </hlm-dialog>
+
     <!-- Confirmar eliminación -->
     <hlm-alert-dialog #deleteConfirmRef="hlmAlertDialog">
       <hlm-alert-dialog-content *hlmAlertDialogPortal>
@@ -291,6 +355,7 @@ export class AdminRecipes {
 
   @ViewChild('createDialogRef') private createDialogRef!: HlmDialog;
   @ViewChild('editDialogRef') private editDialogRef!: HlmDialog;
+  @ViewChild('historyDialogRef') private historyDialogRef!: HlmDialog;
   @ViewChild('deleteConfirmRef') protected deleteConfirmRef!: HlmAlertDialog;
 
   protected readonly submitting = signal(false);
@@ -300,6 +365,7 @@ export class AdminRecipes {
   protected readonly materials = signal<MaterialResponse[]>([]);
   protected readonly recipes = signal<ProductRecipeResponse[]>([]);
   protected readonly selectedRecipe = signal<ProductRecipeResponse | null>(null);
+  protected readonly historyItems = signal<ProductRecipeHistoryItemResponse[]>([]);
 
   protected readonly search = signal('');
   protected readonly moduleFilter = signal('');
@@ -400,6 +466,15 @@ export class AdminRecipes {
         this.formError.set(this.extractError(err, 'No se pudo actualizar la cantidad.'));
       },
     });
+  }
+
+  protected openHistory(recipe: ProductRecipeResponse): void {
+    this.selectedRecipe.set(recipe);
+    this.historyItems.set([]);
+    this.historyDialogRef.open();
+    this.recipesService
+      .getHistory(recipe.productModuleId, recipe.materialId)
+      .subscribe((data) => this.historyItems.set(data));
   }
 
   protected openDeleteConfirm(recipe: ProductRecipeResponse): void {

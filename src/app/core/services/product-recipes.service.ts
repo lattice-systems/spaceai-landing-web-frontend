@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { PagedResult } from '../models/paged-result.model';
 import {
   CreateProductRecipeRequest,
+  ProductRecipeHistoryItemResponse,
   ProductRecipeResponse,
   ProductRecipesQuery,
   UpdateProductRecipeRequest,
@@ -40,5 +41,12 @@ export class ProductRecipesService {
 
   remove(id: string): Observable<void> {
     return this.http.delete<void>(`${environment.apiUrl}/product-recipes/${id}`);
+  }
+
+  getHistory(productModuleId: string, materialId: string): Observable<ProductRecipeHistoryItemResponse[]> {
+    const params = new HttpParams().set('productModuleId', productModuleId).set('materialId', materialId);
+    return this.http.get<ProductRecipeHistoryItemResponse[]>(`${environment.apiUrl}/product-recipes/history`, {
+      params,
+    });
   }
 }

@@ -26,3 +26,13 @@ export interface ProductRecipesQuery {
   productModuleId?: string;
   materialId?: string;
 }
+
+export interface ProductRecipeHistoryItemResponse {
+  id: string;
+  quantity: number;
+  unitCost: number;
+  subtotal: number;
+  createdAt: string;
+  isCurrent: boolean;
+  supersededByRecipeId: string | null;
+}
