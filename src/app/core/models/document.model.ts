@@ -5,5 +5,6 @@ export interface DocumentResponse {
   description: string | null;
   fileUrl: string;
   documentType: string;
+  isVisibleToClients: boolean;
   createdAt: string;
 }
