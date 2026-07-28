@@ -1,17 +1,42 @@
+export interface PurchaseItemResponse {
+  id: string;
+  materialName: string;
+  description: string | null;
+  quantity: number;
+  unitCost: number;
+  subtotal: number;
+}
+
 export interface PurchaseResponse {
   id: string;
   providerId: string;
+  providerName: string;
+  purchaseDate: string;
   total: number;
   status: string;
+  notes: string | null;
+  items: PurchaseItemResponse[];
 }
 
 export interface CreatePurchaseItemRequest {
   materialName: string;
+  description?: string;
   quantity: number;
   unitCost: number;
 }
 
 export interface CreatePurchaseRequest {
   providerId: string;
+  notes?: string;
   purchaseItems: CreatePurchaseItemRequest[];
+}
+
+export interface PurchasesQuery {
+  pageNumber: number;
+  pageSize: number;
+  search?: string;
+  providerId?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
 }
