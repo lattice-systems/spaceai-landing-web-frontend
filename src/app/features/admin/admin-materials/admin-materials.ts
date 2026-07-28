@@ -5,6 +5,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideBeaker,
   lucideEllipsis,
   lucidePencil,
   lucidePlus,
@@ -54,6 +55,7 @@ type StockFilter = 'all' | 'low';
   ],
   providers: [
     provideIcons({
+      lucideBeaker,
       lucideEllipsis,
       lucidePencil,
       lucidePlus,
@@ -67,11 +69,19 @@ type StockFilter = 'all' | 'low';
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-foreground text-xl font-semibold tracking-tight">Materia prima</h1>
-          <p class="text-muted-foreground text-sm">
-            Catálogo de materiales con su costo unitario — base del costeo de cada módulo.
-          </p>
+        <div class="flex items-center gap-3">
+          <span
+            class="flex size-10 shrink-0 items-center justify-center rounded-full"
+            style="background: color-mix(in oklch, var(--chip-amber) 16%, transparent); color: var(--chip-amber)"
+          >
+            <ng-icon name="lucideBeaker" class="text-lg" />
+          </span>
+          <div>
+            <h1 class="text-foreground text-xl font-semibold tracking-tight">Materia prima</h1>
+            <p class="text-muted-foreground text-sm">
+              Catálogo de materiales con su costo unitario — base del costeo de cada módulo.
+            </p>
+          </div>
         </div>
 
         <button hlmBtn size="sm" (click)="openCreate()">

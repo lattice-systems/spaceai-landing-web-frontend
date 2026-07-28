@@ -9,6 +9,7 @@ import {
   lucideSearch,
   lucideTrash2,
   lucideTriangleAlert,
+  lucideTruck,
   lucideX,
 } from '@ng-icons/lucide';
 import { HlmAlertDialogImports, HlmAlertDialog } from '@spartan-ng/helm/alert-dialog';
@@ -59,6 +60,7 @@ const PROVIDER_TYPES = ['Hardware', 'Software', 'Servicios', 'Logística', 'Otro
       lucideSearch,
       lucideTrash2,
       lucideTriangleAlert,
+      lucideTruck,
       lucideX,
     }),
   ],
@@ -66,11 +68,16 @@ const PROVIDER_TYPES = ['Hardware', 'Software', 'Servicios', 'Logística', 'Otro
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-foreground text-xl font-semibold tracking-tight">Proveedores</h1>
-          <p class="text-muted-foreground text-sm">
-            Maestro de proveedores — origen de las compras de materia prima.
-          </p>
+        <div class="flex items-center gap-3">
+          <span class="bg-primary/12 text-primary flex size-10 shrink-0 items-center justify-center rounded-full">
+            <ng-icon name="lucideTruck" class="text-lg" />
+          </span>
+          <div>
+            <h1 class="text-foreground text-xl font-semibold tracking-tight">Proveedores</h1>
+            <p class="text-muted-foreground text-sm">
+              Maestro de proveedores — origen de las compras de materia prima.
+            </p>
+          </div>
         </div>
 
         <button hlmBtn size="sm" (click)="openCreate()">

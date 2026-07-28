@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal, ViewChild }
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideEllipsis, lucideSearch, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
+import { lucideEllipsis, lucideQuote, lucideSearch, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -48,15 +48,23 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
     HlmDialogImports,
     HlmPaginationImports,
   ],
-  providers: [provideIcons({ lucideEllipsis, lucideSearch, lucideTriangleAlert, lucideX })],
+  providers: [provideIcons({ lucideEllipsis, lucideQuote, lucideSearch, lucideTriangleAlert, lucideX })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
-      <div>
-        <h1 class="text-foreground text-xl font-semibold tracking-tight">Cotizaciones</h1>
-        <p class="text-muted-foreground text-sm">
-          Solicitudes de propuesta recibidas desde el cotizador público y el portal cliente.
-        </p>
+      <div class="flex items-center gap-3">
+        <span
+          class="flex size-10 shrink-0 items-center justify-center rounded-full"
+          style="background: color-mix(in oklch, var(--chip-amber) 16%, transparent); color: var(--chip-amber)"
+        >
+          <ng-icon name="lucideQuote" class="text-lg" />
+        </span>
+        <div>
+          <h1 class="text-foreground text-xl font-semibold tracking-tight">Cotizaciones</h1>
+          <p class="text-muted-foreground text-sm">
+            Solicitudes de propuesta recibidas desde el cotizador público y el portal cliente.
+          </p>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-3">

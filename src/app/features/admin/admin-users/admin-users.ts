@@ -6,6 +6,7 @@ import {
   lucideEllipsis,
   lucideKeyRound,
   lucidePencil,
+  lucideUsers,
   lucidePlus,
   lucideSearch,
   lucideTrash2,
@@ -63,6 +64,7 @@ type StatusFilter = 'all' | 'active' | 'inactive';
       lucideEllipsis,
       lucideKeyRound,
       lucidePencil,
+      lucideUsers,
       lucidePlus,
       lucideSearch,
       lucideTrash2,
@@ -74,11 +76,16 @@ type StatusFilter = 'all' | 'active' | 'inactive';
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-foreground text-xl font-semibold tracking-tight">Usuarios</h1>
-          <p class="text-muted-foreground text-sm">
-            Administradores y clientes con acceso al portal.
-          </p>
+        <div class="flex items-center gap-3">
+          <span class="bg-primary/12 text-primary flex size-10 shrink-0 items-center justify-center rounded-full">
+            <ng-icon name="lucideUsers" class="text-lg" />
+          </span>
+          <div>
+            <h1 class="text-foreground text-xl font-semibold tracking-tight">Usuarios</h1>
+            <p class="text-muted-foreground text-sm">
+              Administradores y clientes con acceso al portal.
+            </p>
+          </div>
         </div>
 
         <button hlmBtn size="sm" (click)="openCreate()">

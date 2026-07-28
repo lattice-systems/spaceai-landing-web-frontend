@@ -2,7 +2,7 @@ import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal, ViewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideEllipsis } from '@ng-icons/lucide';
+import { lucideEllipsis, lucideQuote } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -22,13 +22,21 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
 @Component({
   selector: 'app-client-quotes',
   imports: [NgIcon, DatePipe, CurrencyPipe, HlmButtonImports, HlmCardImports, HlmBadgeImports, HlmTableImports, HlmDialogImports],
-  providers: [provideIcons({ lucideEllipsis })],
+  providers: [provideIcons({ lucideEllipsis, lucideQuote })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div>
-        <h1 class="text-foreground text-xl font-semibold tracking-tight">Cotizaciones</h1>
-        <p class="text-muted-foreground text-sm">Propuestas comerciales que has solicitado.</p>
+      <div class="flex items-center gap-3">
+        <span
+          class="flex size-10 shrink-0 items-center justify-center rounded-full"
+          style="background: color-mix(in oklch, var(--chip-violet) 12%, transparent); color: var(--chip-violet)"
+        >
+          <ng-icon name="lucideQuote" class="text-lg" />
+        </span>
+        <div>
+          <h1 class="text-foreground text-xl font-semibold tracking-tight">Cotizaciones</h1>
+          <p class="text-muted-foreground text-sm">Propuestas comerciales que has solicitado.</p>
+        </div>
       </div>
 
       <div hlmCard class="gap-0 overflow-hidden rounded-xl py-0">

@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideBox,
   lucideEllipsis,
   lucideLock,
   lucidePencil,
@@ -58,6 +59,7 @@ type CatalogTab = 'modules' | 'products';
   ],
   providers: [
     provideIcons({
+      lucideBox,
       lucideEllipsis,
       lucideLock,
       lucidePencil,
@@ -72,11 +74,19 @@ type CatalogTab = 'modules' | 'products';
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-foreground text-xl font-semibold tracking-tight">Catálogo</h1>
-          <p class="text-muted-foreground text-sm">
-            Módulos: lo que se cotiza y se vende. Productos: la categoría que los agrupa.
-          </p>
+        <div class="flex items-center gap-3">
+          <span
+            class="flex size-10 shrink-0 items-center justify-center rounded-full"
+            style="background: color-mix(in oklch, var(--chip-violet) 12%, transparent); color: var(--chip-violet)"
+          >
+            <ng-icon name="lucideBox" class="text-lg" />
+          </span>
+          <div>
+            <h1 class="text-foreground text-xl font-semibold tracking-tight">Catálogo</h1>
+            <p class="text-muted-foreground text-sm">
+              Módulos: lo que se cotiza y se vende. Productos: la categoría que los agrupa.
+            </p>
+          </div>
         </div>
 
         @if (activeTab() === 'modules') {

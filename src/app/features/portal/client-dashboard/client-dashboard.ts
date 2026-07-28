@@ -2,6 +2,8 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideFileText, lucideLifeBuoy, lucideQuote } from '@ng-icons/lucide';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { of } from 'rxjs';
@@ -19,7 +21,8 @@ const EMPTY_SUMMARY: ClientDashboardSummaryResponse = {
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [RouterLink, DatePipe, HlmButtonImports, HlmCardImports],
+  imports: [RouterLink, NgIcon, DatePipe, HlmButtonImports, HlmCardImports],
+  providers: [provideIcons({ lucideFileText, lucideLifeBuoy, lucideQuote })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -43,10 +46,19 @@ const EMPTY_SUMMARY: ClientDashboardSummaryResponse = {
       <div class="grid auto-rows-min gap-4 md:grid-cols-3">
         @for (stat of stats(); track stat.label) {
           <div hlmCard>
-            <div hlmCardContent>
-              <p class="text-muted-foreground text-sm">{{ stat.label }}</p>
-              <p class="text-foreground mt-3 text-3xl font-semibold">{{ stat.value }}</p>
-              <p class="text-muted-foreground mt-2 text-xs">{{ stat.note }}</p>
+            <div hlmCardContent class="flex items-start justify-between gap-3">
+              <div>
+                <p class="text-muted-foreground text-sm">{{ stat.label }}</p>
+                <p class="text-foreground mt-3 text-3xl font-semibold">{{ stat.value }}</p>
+                <p class="text-muted-foreground mt-2 text-xs">{{ stat.note }}</p>
+              </div>
+              <span
+                class="flex size-10 shrink-0 items-center justify-center rounded-full"
+                [style.background]="'color-mix(in oklch, var(' + stat.chip + ') 14%, transparent)'"
+                [style.color]="'var(' + stat.chip + ')'"
+              >
+                <ng-icon [name]="stat.icon" class="text-lg" />
+              </span>
             </div>
           </div>
         }
@@ -128,16 +140,22 @@ export class ClientDashboard {
         label: 'Cotizaciones',
         value: String(totalQuotes),
         note: `${s.quotesByStatus.pending} pendiente(s) de respuesta`,
+        icon: 'lucideQuote',
+        chip: '--chip-violet',
       },
       {
         label: 'Documentos',
         value: String(s.totalDocuments),
         note: 'Guías y recursos disponibles',
+        icon: 'lucideFileText',
+        chip: '--chip-emerald',
       },
       {
         label: 'Tickets abiertos',
         value: String(s.openTickets),
         note: 'Seguimiento de soporte',
+        icon: 'lucideLifeBuoy',
+        chip: '--chip-amber',
       },
     ];
   });

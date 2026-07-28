@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideSearch, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
+import { lucideSearch, lucideStar, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -32,15 +32,23 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
     HlmCheckboxImports,
     HlmPaginationImports,
   ],
-  providers: [provideIcons({ lucideSearch, lucideTriangleAlert, lucideX })],
+  providers: [provideIcons({ lucideSearch, lucideStar, lucideTriangleAlert, lucideX })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
-      <div>
-        <h1 class="text-foreground text-xl font-semibold tracking-tight">Reseñas</h1>
-        <p class="text-muted-foreground text-sm">
-          Comentarios y valoraciones enviados por clientes — aprueba las que se pueden mostrar públicamente.
-        </p>
+      <div class="flex items-center gap-3">
+        <span
+          class="flex size-10 shrink-0 items-center justify-center rounded-full"
+          style="background: color-mix(in oklch, var(--chip-emerald) 14%, transparent); color: var(--chip-emerald)"
+        >
+          <ng-icon name="lucideStar" class="text-lg" />
+        </span>
+        <div>
+          <h1 class="text-foreground text-xl font-semibold tracking-tight">Reseñas</h1>
+          <p class="text-muted-foreground text-sm">
+            Comentarios y valoraciones enviados por clientes — aprueba las que se pueden mostrar públicamente.
+          </p>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-3">

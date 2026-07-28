@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucidePlus, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
+import { lucideLifeBuoy, lucidePlus, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -29,14 +29,22 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
     HlmBadgeImports,
     HlmDialogImports,
   ],
-  providers: [provideIcons({ lucidePlus, lucideTriangleAlert, lucideX })],
+  providers: [provideIcons({ lucideLifeBuoy, lucidePlus, lucideTriangleAlert, lucideX })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-foreground text-xl font-semibold tracking-tight">Soporte</h1>
-          <p class="text-muted-foreground text-sm">Tus tickets abiertos con el equipo SpaceIA.</p>
+        <div class="flex items-center gap-3">
+          <span
+            class="flex size-10 shrink-0 items-center justify-center rounded-full"
+            style="background: color-mix(in oklch, var(--chip-amber) 16%, transparent); color: var(--chip-amber)"
+          >
+            <ng-icon name="lucideLifeBuoy" class="text-lg" />
+          </span>
+          <div>
+            <h1 class="text-foreground text-xl font-semibold tracking-tight">Soporte</h1>
+            <p class="text-muted-foreground text-sm">Tus tickets abiertos con el equipo SpaceIA.</p>
+          </div>
         </div>
         <button hlmBtn size="sm" (click)="openCreate()">
           <ng-icon name="lucidePlus" class="mr-1" />

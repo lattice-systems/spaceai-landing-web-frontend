@@ -6,6 +6,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideEllipsis,
   lucidePlus,
+  lucideReceipt,
   lucideSearch,
   lucideTrash2,
   lucideTriangleAlert,
@@ -53,6 +54,7 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
     provideIcons({
       lucideEllipsis,
       lucidePlus,
+      lucideReceipt,
       lucideSearch,
       lucideTrash2,
       lucideTriangleAlert,
@@ -63,11 +65,19 @@ type StatusFilter = 'all' | 'Completed' | 'Cancelled';
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-foreground text-xl font-semibold tracking-tight">Compras</h1>
-          <p class="text-muted-foreground text-sm">
-            Historial de compras a proveedores — registro financiero, no editable línea por línea.
-          </p>
+        <div class="flex items-center gap-3">
+          <span
+            class="flex size-10 shrink-0 items-center justify-center rounded-full"
+            style="background: color-mix(in oklch, var(--chip-violet) 12%, transparent); color: var(--chip-violet)"
+          >
+            <ng-icon name="lucideReceipt" class="text-lg" />
+          </span>
+          <div>
+            <h1 class="text-foreground text-xl font-semibold tracking-tight">Compras</h1>
+            <p class="text-muted-foreground text-sm">
+              Historial de compras a proveedores — registro financiero, no editable línea por línea.
+            </p>
+          </div>
         </div>
 
         <button hlmBtn size="sm" (click)="openCreate()">

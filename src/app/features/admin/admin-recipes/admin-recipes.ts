@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, V
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideEllipsis, lucidePencil, lucidePlus, lucideSearch, lucideTrash2 } from '@ng-icons/lucide';
+import { lucideEllipsis, lucidePackage, lucidePencil, lucidePlus, lucideSearch, lucideTrash2 } from '@ng-icons/lucide';
 import { HlmAlertDialogImports, HlmAlertDialog } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -43,16 +43,24 @@ interface RecipeGroup {
     HlmDialogImports,
     HlmAlertDialogImports,
   ],
-  providers: [provideIcons({ lucideEllipsis, lucidePencil, lucidePlus, lucideSearch, lucideTrash2 })],
+  providers: [provideIcons({ lucideEllipsis, lucidePackage, lucidePencil, lucidePlus, lucideSearch, lucideTrash2 })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-foreground text-xl font-semibold tracking-tight">Recetas de producto</h1>
-          <p class="text-muted-foreground text-sm">
-            Materiales por módulo (BOM). El precio de venta se recalcula solo al editar.
-          </p>
+        <div class="flex items-center gap-3">
+          <span
+            class="flex size-10 shrink-0 items-center justify-center rounded-full"
+            style="background: color-mix(in oklch, var(--chip-emerald) 14%, transparent); color: var(--chip-emerald)"
+          >
+            <ng-icon name="lucidePackage" class="text-lg" />
+          </span>
+          <div>
+            <h1 class="text-foreground text-xl font-semibold tracking-tight">Recetas de producto</h1>
+            <p class="text-muted-foreground text-sm">
+              Materiales por módulo (BOM). El precio de venta se recalcula solo al editar.
+            </p>
+          </div>
         </div>
 
         <button hlmBtn size="sm" (click)="openCreate()">

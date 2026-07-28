@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideEllipsis, lucideSearch, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
+import { lucideEllipsis, lucideMail, lucideSearch, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -36,15 +36,20 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
     HlmDialogImports,
     HlmPaginationImports,
   ],
-  providers: [provideIcons({ lucideEllipsis, lucideSearch, lucideTriangleAlert, lucideX })],
+  providers: [provideIcons({ lucideEllipsis, lucideMail, lucideSearch, lucideTriangleAlert, lucideX })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
-      <div>
-        <h1 class="text-foreground text-xl font-semibold tracking-tight">Mensajes</h1>
-        <p class="text-muted-foreground text-sm">
-          Bandeja del formulario público de contacto — los pendientes son tu cola de seguimiento.
-        </p>
+      <div class="flex items-center gap-3">
+        <span class="bg-primary/12 text-primary flex size-10 shrink-0 items-center justify-center rounded-full">
+          <ng-icon name="lucideMail" class="text-lg" />
+        </span>
+        <div>
+          <h1 class="text-foreground text-xl font-semibold tracking-tight">Mensajes</h1>
+          <p class="text-muted-foreground text-sm">
+            Bandeja del formulario público de contacto — los pendientes son tu cola de seguimiento.
+          </p>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-3">

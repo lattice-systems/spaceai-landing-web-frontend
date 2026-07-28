@@ -15,9 +15,17 @@ import { DocumentsService } from '../../../core/services/documents.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div>
-        <h1 class="text-foreground text-xl font-semibold tracking-tight">Documentación</h1>
-        <p class="text-muted-foreground text-sm">Guías y manuales técnicos disponibles para tu cuenta.</p>
+      <div class="flex items-center gap-3">
+        <span
+          class="flex size-10 shrink-0 items-center justify-center rounded-full"
+          style="background: color-mix(in oklch, var(--chip-emerald) 14%, transparent); color: var(--chip-emerald)"
+        >
+          <ng-icon name="lucideFileText" class="text-lg" />
+        </span>
+        <div>
+          <h1 class="text-foreground text-xl font-semibold tracking-tight">Documentación</h1>
+          <p class="text-muted-foreground text-sm">Guías y manuales técnicos disponibles para tu cuenta.</p>
+        </div>
       </div>
 
       <div class="grid gap-3 sm:grid-cols-2">
