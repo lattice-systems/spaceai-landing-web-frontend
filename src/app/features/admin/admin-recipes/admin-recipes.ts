@@ -65,7 +65,7 @@ interface RecipeGroup {
 
         <button hlmBtn size="sm" (click)="openCreate()">
           <ng-icon name="lucidePlus" class="mr-1" />
-          Agregar material
+          Nueva fila de receta
         </button>
       </div>
 
@@ -104,12 +104,14 @@ interface RecipeGroup {
               <div>
                 <h3 class="text-foreground font-medium leading-tight">{{ group.module.name }}</h3>
                 <p class="text-muted-foreground text-xs leading-tight">
-                  {{ group.rows.length }} {{ group.rows.length === 1 ? 'material' : 'materiales' }}
+                  {{ group.rows.length }} {{ group.rows.length === 1 ? 'material' : 'materiales' }} · precio de venta
+                  <span class="text-foreground font-semibold">{{ group.module.price | currency: 'USD' }}</span>
                 </p>
               </div>
-              <span hlmBadge variant="secondary" class="font-normal">
-                Precio: {{ group.module.price | currency: 'USD' }}
-              </span>
+              <button hlmBtn variant="outline" size="sm" (click)="openCreate(group.module.id)">
+                <ng-icon name="lucidePlus" class="mr-1" />
+                Agregar material
+              </button>
             </div>
 
             <div hlmTableContainer>
@@ -133,16 +135,28 @@ interface RecipeGroup {
                       <td hlmTd class="text-muted-foreground">{{ recipe.unitCost | currency: 'USD' }}</td>
                       <td hlmTd class="text-muted-foreground">{{ recipe.subtotal | currency: 'USD' }}</td>
                       <td hlmTd class="text-right">
-                        <button
-                          hlmBtn
-                          variant="ghost"
-                          size="icon"
-                          [hlmDropdownMenuTrigger]="rowMenu"
-                          align="end"
-                          aria-label="Acciones"
-                        >
-                          <ng-icon name="lucideEllipsis" />
-                        </button>
+                        <div class="flex items-center justify-end gap-1">
+                          <button
+                            hlmBtn
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Editar cantidad"
+                            title="Editar cantidad"
+                            (click)="openEdit(recipe)"
+                          >
+                            <ng-icon name="lucidePencil" />
+                          </button>
+                          <button
+                            hlmBtn
+                            variant="ghost"
+                            size="icon"
+                            [hlmDropdownMenuTrigger]="rowMenu"
+                            align="end"
+                            aria-label="Acciones"
+                          >
+                            <ng-icon name="lucideEllipsis" />
+                          </button>
+                        </div>
                         <ng-template #rowMenu>
                           <hlm-dropdown-menu class="min-w-44 rounded-lg">
                             <button hlmDropdownMenuItem (click)="openEdit(recipe)">
@@ -337,9 +351,9 @@ export class AdminRecipes {
     this.moduleFilter.set(value ?? '');
   }
 
-  protected openCreate(): void {
+  protected openCreate(productModuleId = ''): void {
     this.formError.set(null);
-    this.createForm.reset({ productModuleId: '', materialId: '', quantity: 1 });
+    this.createForm.reset({ productModuleId, materialId: '', quantity: 1 });
     this.createDialogRef.open();
   }
 

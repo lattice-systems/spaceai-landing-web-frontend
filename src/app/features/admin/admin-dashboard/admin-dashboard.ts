@@ -40,6 +40,14 @@ const ACTIVITY_ICONS: Record<string, { icon: string; chip: string }> = {
   Soporte: { icon: 'lucideLifeBuoy', chip: '--chip-sky' },
 };
 
+// Soporte no tiene pantalla admin propia todavía (solo lo gestiona el cliente en su
+// portal) — no se inventa una ruta para esa categoría, se omite el botón de acción.
+const ACTIVITY_ROUTES: Record<string, string> = {
+  Comercial: '/admin/cotizaciones',
+  Contacto: '/admin/mensajes',
+  Reseña: '/admin/resenas',
+};
+
 @Component({
   selector: 'app-admin-dashboard',
   imports: [RouterLink, NgIcon, CurrencyPipe, DatePipe, HlmButtonImports, HlmCardImports, HlmBadgeImports],
@@ -263,6 +271,9 @@ const ACTIVITY_ICONS: Record<string, { icon: string; chip: string }> = {
                 <p class="text-muted-foreground text-xs">{{ item.category }}</p>
               </div>
               <span class="text-muted-foreground shrink-0 text-xs">{{ item.date | date: 'mediumDate' }}</span>
+              @if (activityRoute(item.category); as route) {
+                <a hlmBtn variant="ghost" size="sm" class="shrink-0" [routerLink]="route">Ver</a>
+              }
             </div>
           } @empty {
             <p class="text-muted-foreground py-2 text-sm">Sin actividad reciente.</p>
@@ -302,6 +313,10 @@ export class AdminDashboard {
   protected pct(count: number): number {
     const total = this.totalQuotes();
     return total === 0 ? 0 : (count / total) * 100;
+  }
+
+  protected activityRoute(category: string): string | null {
+    return ACTIVITY_ROUTES[category] ?? null;
   }
 
   protected activityIcon(category: string): string {
