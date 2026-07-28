@@ -1,6 +1,6 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, effect, inject, signal, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
@@ -8,6 +8,7 @@ import { lucideEllipsis, lucideQuote, lucideSearch, lucideTriangleAlert, lucideX
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
+import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
 import { HlmDialogImports, HlmDialog } from '@spartan-ng/helm/dialog';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmInputImports } from '@spartan-ng/helm/input';
@@ -45,6 +46,7 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
     HlmNativeSelectImports,
     HlmTableImports,
     HlmBadgeImports,
+    HlmCheckboxImports,
     HlmDropdownMenuImports,
     HlmDialogImports,
     HlmPaginationImports,
@@ -107,11 +109,22 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
         </div>
       }
 
+      @if (selectedIds().size > 0) {
+        <div class="bg-muted/50 border-border flex items-center gap-3 rounded-lg border p-3">
+          <p class="text-sm font-medium">{{ selectedIds().size }} seleccionadas</p>
+          <button hlmBtn size="sm" (click)="bulkDecide('Approved')">Aprobar seleccionadas</button>
+          <button hlmBtn variant="outline" size="sm" (click)="bulkDecide('Rejected')">Rechazar seleccionadas</button>
+        </div>
+      }
+
       <div hlmCard class="gap-0 overflow-hidden rounded-xl py-0">
         <div hlmTableContainer>
           <table hlmTable>
             <thead hlmTHead>
               <tr hlmTr class="bg-muted/40 hover:bg-muted/40">
+                <th hlmTh class="w-10">
+                  <hlm-checkbox [checked]="allSelected()" (checkedChange)="toggleSelectAll($event)" />
+                </th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Institución</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Contacto</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Total</th>
@@ -124,7 +137,10 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
             </thead>
             <tbody hlmTBody>
               @for (quote of page().data; track quote.id) {
-                <tr hlmTr>
+                <tr hlmTr [attr.data-state]="selectedIds().has(quote.id) ? 'selected' : null">
+                  <td hlmTd>
+                    <hlm-checkbox [checked]="selectedIds().has(quote.id)" (checkedChange)="toggleSelect(quote.id)" />
+                  </td>
                   <td hlmTd>
                     <div class="flex flex-col">
                       <span class="text-foreground font-medium leading-tight">{{ quote.institutionName }}</span>
@@ -190,7 +206,7 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
                 </tr>
               } @empty {
                 <tr hlmTr>
-                  <td hlmTd colspan="6" class="text-muted-foreground text-center">
+                  <td hlmTd colspan="7" class="text-muted-foreground text-center">
                     Sin cotizaciones que coincidan con la búsqueda.
                   </td>
                 </tr>
@@ -333,6 +349,12 @@ export class AdminQuotes {
   protected readonly decisionKind = signal<DecisionKind>('approve');
   protected readonly submitting = signal(false);
   protected readonly actionError = signal<string | null>(null);
+  protected readonly selectedIds = signal<Set<string>>(new Set());
+
+  protected readonly allSelected = computed(() => {
+    const data = this.page().data;
+    return data.length > 0 && data.every((q) => this.selectedIds().has(q.id));
+  });
 
   protected readonly decisionForm = this.fb.nonNullable.group({
     adminNotes: [''],
@@ -390,6 +412,32 @@ export class AdminQuotes {
   protected onStatusFilterChange(value: string | null | undefined): void {
     this.statusFilter.set((value ?? 'all') as StatusFilter);
     this.pageNumber.set(1);
+  }
+
+  protected toggleSelect(id: string): void {
+    const next = new Set(this.selectedIds());
+    next.has(id) ? next.delete(id) : next.add(id);
+    this.selectedIds.set(next);
+  }
+
+  protected toggleSelectAll(checked: boolean): void {
+    if (!checked) {
+      this.selectedIds.set(new Set());
+      return;
+    }
+    this.selectedIds.set(new Set(this.page().data.map((q) => q.id)));
+  }
+
+  protected bulkDecide(status: 'Approved' | 'Rejected'): void {
+    this.quotesService.bulkDecide(Array.from(this.selectedIds()), status).subscribe((result) => {
+      this.selectedIds.set(new Set());
+      this.reportBulkResult(result.affected, result.skipped);
+      this.reload();
+    });
+  }
+
+  private reportBulkResult(affected: number, skipped: string[]): void {
+    this.actionError.set(skipped.length > 0 ? `${affected} aplicadas. Omitidas: ${skipped.join(' ')}` : null);
   }
 
   protected openDetail(quote: QuoteResponse): void {

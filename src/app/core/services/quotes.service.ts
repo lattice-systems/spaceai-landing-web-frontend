@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { BulkAffectedResult } from '../models/material.model';
 import { PagedResult } from '../models/paged-result.model';
 import { CreateQuoteRequest, DecideQuoteRequest, QuoteResponse, QuotesQuery } from '../models/quote.model';
 
@@ -42,5 +43,13 @@ export class QuotesService {
 
   reject(id: string, request: DecideQuoteRequest): Observable<QuoteResponse> {
     return this.http.put<QuoteResponse>(`${environment.apiUrl}/quotes/${id}/reject`, request);
+  }
+
+  bulkDecide(ids: string[], status: 'Approved' | 'Rejected', adminNotes?: string): Observable<BulkAffectedResult> {
+    return this.http.post<BulkAffectedResult>(`${environment.apiUrl}/quotes/bulk-status`, {
+      ids,
+      status,
+      adminNotes,
+    });
   }
 }
