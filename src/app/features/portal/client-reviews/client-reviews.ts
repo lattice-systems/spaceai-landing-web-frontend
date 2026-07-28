@@ -1,7 +1,7 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
-import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmCheckboxImports } from '@spartan-ng/helm/checkbox';
@@ -13,6 +13,7 @@ import { ProductModuleResponse } from '../../../core/models/product-module.model
 import { ReviewResponse } from '../../../core/models/review.model';
 import { ProductModulesService } from '../../../core/services/product-modules.service';
 import { ReviewsService } from '../../../core/services/reviews.service';
+import { StatusChip } from '../../../shared/status-chip/status-chip';
 
 @Component({
   selector: 'app-client-reviews',
@@ -23,8 +24,8 @@ import { ReviewsService } from '../../../core/services/reviews.service';
     HlmNativeSelectImports,
     HlmTextareaImports,
     HlmCardImports,
-    HlmBadgeImports,
     HlmCheckboxImports,
+    StatusChip,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -80,6 +81,9 @@ import { ReviewsService } from '../../../core/services/reviews.service';
             @if (submitted()) {
               <p class="text-muted-foreground text-xs">Gracias, tu opinión quedó pendiente de aprobación.</p>
             }
+            @if (submitError()) {
+              <p class="text-destructive text-xs">{{ submitError() }}</p>
+            }
           </form>
         </section>
 
@@ -93,9 +97,11 @@ import { ReviewsService } from '../../../core/services/reviews.service';
                     {{ review.productModuleName }} — {{ review.rating }}/5
                   </p>
                   <p class="text-muted-foreground mt-1 text-xs">{{ review.comment }}</p>
-                  <span hlmBadge [variant]="statusVariant(review.status)" class="mt-2">
-                    {{ statusLabel(review.status) }}
-                  </span>
+                  <app-status-chip
+                    class="mt-2 inline-block"
+                    [label]="statusLabel(review.status)"
+                    [chip]="statusChip(review.status)"
+                  />
                 </div>
               </div>
             } @empty {
@@ -116,6 +122,7 @@ export class ClientReviews {
   protected readonly submitting = signal(false);
   protected readonly submitted = signal(false);
   protected readonly submitAttempted = signal(false);
+  protected readonly submitError = signal<string | null>(null);
   protected readonly productModules = signal<ProductModuleResponse[]>([]);
   protected readonly selectedModuleIds = signal<Set<string>>(new Set());
   private readonly allReviews = signal<ReviewResponse[]>([]);
@@ -136,10 +143,10 @@ export class ClientReviews {
     return 'Pendiente de aprobación';
   }
 
-  protected statusVariant(status: string): 'default' | 'secondary' | 'outline' {
-    if (status === 'Approved') return 'default';
-    if (status === 'Rejected') return 'outline';
-    return 'secondary';
+  protected statusChip(status: string): string | null {
+    if (status === 'Approved') return '--chip-emerald';
+    if (status === 'Rejected') return '--chip-rose';
+    return '--chip-amber';
   }
 
   protected readonly form = this.fb.nonNullable.group({
@@ -172,6 +179,7 @@ export class ClientReviews {
 
     this.submitting.set(true);
     this.submitted.set(false);
+    this.submitError.set(null);
 
     const { rating, comment } = this.form.getRawValue();
     const requests = Array.from(this.selectedModuleIds()).map((productModuleId) =>
@@ -187,10 +195,22 @@ export class ClientReviews {
         this.selectedModuleIds.set(new Set());
         this.reload();
       },
-      error: () => this.submitting.set(false),
+      error: (err: HttpErrorResponse) => {
+        this.submitting.set(false);
+        this.submitError.set(this.extractError(err, 'No se pudo enviar tu opinión. Intenta de nuevo.'));
+      },
     });
   }
 
+  private extractError(err: HttpErrorResponse, fallback: string): string {
+    const errors = err.error?.errors as string[] | undefined;
+    if (errors?.length) return errors.join(' ');
+    return err.error?.message || fallback;
+  }
+
+  // El backend, para rol Client, devuelve "Approved de cualquiera + propias en cualquier
+  // estado" (así el cliente ve el estatus de lo que mandó) — no existe un filtro "solo mías"
+  // server-side, así que este componente sigue necesitando aislar las propias en el cliente.
   private reload(): void {
     this.reviewsService.listAll().subscribe((data) => this.allReviews.set(data));
   }
