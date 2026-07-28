@@ -244,7 +244,7 @@ export class AdminDashboard {
 
     return (
       `conic-gradient(var(--primary) 0% ${pendingEnd}%, ` +
-      `var(--quote-approved) ${pendingEnd}% ${approvedEnd}%, ` +
+      `var(--chip-emerald) ${pendingEnd}% ${approvedEnd}%, ` +
       `var(--destructive) ${approvedEnd}% 100%)`
     );
   });
