@@ -5,7 +5,11 @@ export interface ProviderResponse {
   email: string;
   phone: string;
   address: string;
+  providerType: string;
   isActive: boolean;
+  purchaseCount: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateProviderRequest {
@@ -14,4 +18,22 @@ export interface CreateProviderRequest {
   email: string;
   phone: string;
   address: string;
+  providerType: string;
+}
+
+export interface UpdateProviderRequest {
+  name: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  address: string;
+  providerType: string;
+}
+
+export interface ProvidersQuery {
+  pageNumber: number;
+  pageSize: number;
+  search?: string;
+  isActive?: boolean;
+  providerType?: string;
 }

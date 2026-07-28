@@ -146,7 +146,7 @@ export class AdminPurchases {
   }
 
   constructor() {
-    this.providersService.list().subscribe((data) => this.providers.set(data));
+    this.providersService.listAll().subscribe((data) => this.providers.set(data));
     this.reload();
   }
 
