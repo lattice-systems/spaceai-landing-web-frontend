@@ -76,8 +76,8 @@ import { ReviewsService } from '../../../core/services/reviews.service';
                     {{ review.productName }} — {{ review.rating }}/5
                   </p>
                   <p class="text-muted-foreground mt-1 text-xs">{{ review.comment }}</p>
-                  <span hlmBadge [variant]="review.isApproved ? 'default' : 'secondary'" class="mt-2">
-                    {{ review.isApproved ? 'Publicada' : 'Pendiente de aprobación' }}
+                  <span hlmBadge [variant]="statusVariant(review.status)" class="mt-2">
+                    {{ statusLabel(review.status) }}
                   </span>
                 </div>
               </div>
@@ -105,6 +105,18 @@ export class ClientReviews {
     const clientId = this.authService.user()?.clientId;
     return this.allReviews().filter((r) => r.clientId === clientId);
   });
+
+  protected statusLabel(status: string): string {
+    if (status === 'Approved') return 'Publicada';
+    if (status === 'Rejected') return 'No publicada';
+    return 'Pendiente de aprobación';
+  }
+
+  protected statusVariant(status: string): 'default' | 'secondary' | 'outline' {
+    if (status === 'Approved') return 'default';
+    if (status === 'Rejected') return 'outline';
+    return 'secondary';
+  }
 
   protected readonly form = this.fb.nonNullable.group({
     productId: ['', Validators.required],
@@ -135,6 +147,6 @@ export class ClientReviews {
   }
 
   private reload(): void {
-    this.reviewsService.list().subscribe((data) => this.allReviews.set(data));
+    this.reviewsService.listAll().subscribe((data) => this.allReviews.set(data));
   }
 }

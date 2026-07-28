@@ -161,8 +161,8 @@ export class Testimonios {
   private timerId?: ReturnType<typeof setInterval>;
 
   constructor() {
-    this.reviewsService.list().subscribe((reviews) => {
-      const approved = reviews.filter((r) => r.isApproved);
+    this.reviewsService.listAll().subscribe((reviews) => {
+      const approved = reviews.filter((r) => r.status === 'Approved');
       this.testimonios.set(
         approved.map((r) => ({
           id: r.id,

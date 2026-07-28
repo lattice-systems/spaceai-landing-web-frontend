@@ -7,7 +7,7 @@ export interface ReviewResponse {
   productName: string;
   rating: number;
   comment: string;
-  isApproved: boolean;
+  status: string;
   createdAt: string;
 }
 
@@ -15,4 +15,11 @@ export interface CreateReviewRequest {
   productId: string;
   rating: number;
   comment: string;
+}
+
+export interface ReviewsQuery {
+  pageNumber: number;
+  pageSize: number;
+  search?: string;
+  status?: string;
 }
