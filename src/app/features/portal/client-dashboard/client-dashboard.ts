@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
@@ -6,13 +7,19 @@ import { HlmCardImports } from '@spartan-ng/helm/card';
 import { of } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { ClientsService } from '../../../core/services/clients.service';
-import { DocumentsService } from '../../../core/services/documents.service';
-import { QuotesService } from '../../../core/services/quotes.service';
-import { SupportTicketsService } from '../../../core/services/support-tickets.service';
+import { DashboardService } from '../../../core/services/dashboard.service';
+import { ClientDashboardSummaryResponse } from '../../../core/models/dashboard.model';
+
+const EMPTY_SUMMARY: ClientDashboardSummaryResponse = {
+  openTickets: 0,
+  totalDocuments: 0,
+  quotesByStatus: { pending: 0, approved: 0, rejected: 0 },
+  recentActivity: [],
+};
 
 @Component({
   selector: 'app-client-dashboard',
-  imports: [RouterLink, HlmButtonImports, HlmCardImports],
+  imports: [RouterLink, DatePipe, HlmButtonImports, HlmCardImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -71,10 +78,13 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
             <h2 hlmCardTitle>Actividad reciente</h2>
           </div>
           <div hlmCardContent class="grid gap-3">
-            @for (activity of recentActivity(); track activity.title) {
+            @for (activity of summary().recentActivity; track activity.title + activity.date) {
               <div class="bg-background/70 border-border rounded-lg border p-4">
                 <p class="text-foreground text-sm font-medium">{{ activity.title }}</p>
-                <p class="text-muted-foreground mt-1 text-xs">{{ activity.category }}</p>
+                <div class="mt-1 flex items-center justify-between gap-2">
+                  <p class="text-muted-foreground text-xs">{{ activity.category }}</p>
+                  <p class="text-muted-foreground text-xs">{{ activity.date | date: 'mediumDate' }}</p>
+                </div>
               </div>
             } @empty {
               <p class="text-muted-foreground text-sm">Sin actividad reciente.</p>
@@ -88,9 +98,7 @@ import { SupportTicketsService } from '../../../core/services/support-tickets.se
 export class ClientDashboard {
   private readonly authService = inject(AuthService);
   private readonly clientsService = inject(ClientsService);
-  private readonly documentsService = inject(DocumentsService);
-  private readonly quotesService = inject(QuotesService);
-  private readonly supportTicketsService = inject(SupportTicketsService);
+  private readonly dashboardService = inject(DashboardService);
 
   private readonly clientId = this.authService.user()?.clientId ?? null;
 
@@ -99,11 +107,7 @@ export class ClientDashboard {
     { initialValue: null },
   );
 
-  private readonly documents = toSignal(this.documentsService.list(), { initialValue: [] });
-
-  private readonly quotes = toSignal(this.quotesService.listAll(), { initialValue: [] });
-
-  private readonly tickets = toSignal(this.supportTicketsService.list(), { initialValue: [] });
+  protected readonly summary = toSignal(this.dashboardService.getClientSummary(), { initialValue: EMPTY_SUMMARY });
 
   protected readonly clientInfo = computed(() => {
     const client = this.client();
@@ -116,27 +120,25 @@ export class ClientDashboard {
     ];
   });
 
-  protected readonly stats = computed(() => [
-    {
-      label: 'Cotizaciones',
-      value: String(this.quotes().length),
-      note: 'Propuestas comerciales registradas',
-    },
-    {
-      label: 'Documentos',
-      value: String(this.documents().length),
-      note: 'Guías y recursos disponibles',
-    },
-    {
-      label: 'Tickets abiertos',
-      value: String(this.tickets().filter((t) => t.status !== 'Cerrado').length),
-      note: 'Seguimiento de soporte',
-    },
-  ]);
-
-  protected readonly recentActivity = computed(() => [
-    ...this.documents().map((d) => ({ title: d.title, category: 'Documentación técnica' })),
-    ...this.tickets().map((t) => ({ title: t.subject, category: 'Soporte' })),
-    ...this.quotes().map((q) => ({ title: `Cotización · ${q.institutionName}`, category: 'Comercial' })),
-  ]);
+  protected readonly stats = computed(() => {
+    const s = this.summary();
+    const totalQuotes = s.quotesByStatus.pending + s.quotesByStatus.approved + s.quotesByStatus.rejected;
+    return [
+      {
+        label: 'Cotizaciones',
+        value: String(totalQuotes),
+        note: `${s.quotesByStatus.pending} pendiente(s) de respuesta`,
+      },
+      {
+        label: 'Documentos',
+        value: String(s.totalDocuments),
+        note: 'Guías y recursos disponibles',
+      },
+      {
+        label: 'Tickets abiertos',
+        value: String(s.openTickets),
+        note: 'Seguimiento de soporte',
+      },
+    ];
+  });
 }

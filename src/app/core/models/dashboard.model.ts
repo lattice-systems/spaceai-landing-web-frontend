@@ -15,3 +15,16 @@ export interface DashboardSummaryResponse {
   monthlyApprovedQuotesTotal: number;
   quotesByStatus: QuotesByStatusResponse;
 }
+
+export interface ClientActivityItemResponse {
+  title: string;
+  category: string;
+  date: string;
+}
+
+export interface ClientDashboardSummaryResponse {
+  openTickets: number;
+  totalDocuments: number;
+  quotesByStatus: QuotesByStatusResponse;
+  recentActivity: ClientActivityItemResponse[];
+}

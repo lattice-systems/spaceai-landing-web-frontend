@@ -22,21 +22,18 @@ export const routes: Routes = [
       },
       {
         path: 'documentos',
-        data: { section: 'documentos' },
         loadComponent: () =>
-          import('./features/portal/client-section/client-section').then((m) => m.ClientSection),
+          import('./features/portal/client-documents/client-documents').then((m) => m.ClientDocuments),
       },
       {
         path: 'cotizaciones',
-        data: { section: 'cotizaciones' },
         loadComponent: () =>
-          import('./features/portal/client-section/client-section').then((m) => m.ClientSection),
+          import('./features/portal/client-quotes/client-quotes').then((m) => m.ClientQuotes),
       },
       {
         path: 'soporte',
-        data: { section: 'soporte' },
         loadComponent: () =>
-          import('./features/portal/client-section/client-section').then((m) => m.ClientSection),
+          import('./features/portal/client-support/client-support').then((m) => m.ClientSupport),
       },
       {
         path: 'opiniones',
