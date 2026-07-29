@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -8,6 +8,7 @@ import {
   lucideHistory,
   lucidePackage,
   lucidePencil,
+  lucidePercent,
   lucidePlus,
   lucideSearch,
   lucideTrash2,
@@ -28,6 +29,7 @@ import { ProductRecipeHistoryItemResponse, ProductRecipeResponse } from '../../.
 import { MaterialsService } from '../../../core/services/materials.service';
 import { ProductModulesService } from '../../../core/services/product-modules.service';
 import { ProductRecipesService } from '../../../core/services/product-recipes.service';
+import { BusinessSettingsService } from '../../../core/services/business-settings.service';
 
 interface RecipeGroup {
   module: ProductModuleResponse;
@@ -41,6 +43,7 @@ interface RecipeGroup {
     NgIcon,
     CurrencyPipe,
     DatePipe,
+    DecimalPipe,
     HlmButtonImports,
     HlmCardImports,
     HlmInputImports,
@@ -53,7 +56,16 @@ interface RecipeGroup {
     HlmAlertDialogImports,
   ],
   providers: [
-    provideIcons({ lucideEllipsis, lucideHistory, lucidePackage, lucidePencil, lucidePlus, lucideSearch, lucideTrash2 }),
+    provideIcons({
+      lucideEllipsis,
+      lucideHistory,
+      lucidePackage,
+      lucidePencil,
+      lucidePercent,
+      lucidePlus,
+      lucideSearch,
+      lucideTrash2,
+    }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -74,10 +86,16 @@ interface RecipeGroup {
           </div>
         </div>
 
-        <button hlmBtn size="sm" (click)="openCreate()">
-          <ng-icon name="lucidePlus" class="mr-1" />
-          Nueva fila de receta
-        </button>
+        <div class="flex items-center gap-2">
+          <button hlmBtn size="sm" variant="outline" (click)="openMargin()">
+            <ng-icon name="lucidePercent" class="mr-1" />
+            Margen: {{ marginOverCost() * 100 | number: '1.0-0' }}%
+          </button>
+          <button hlmBtn size="sm" (click)="openCreate()">
+            <ng-icon name="lucidePlus" class="mr-1" />
+            Nueva fila de receta
+          </button>
+        </div>
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
@@ -329,6 +347,31 @@ interface RecipeGroup {
       </hlm-dialog-content>
     </hlm-dialog>
 
+    <!-- Editar margen -->
+    <hlm-dialog #marginDialogRef="hlmDialog">
+      <hlm-dialog-content *hlmDialogPortal class="w-full sm:max-w-sm">
+        <hlm-dialog-header>
+          <h3 hlmDialogTitle>Margen sobre costo</h3>
+          <p hlmDialogDescription>Aplica a todos los módulos al recalcular su receta.</p>
+        </hlm-dialog-header>
+        <form [formGroup]="marginForm" (ngSubmit)="submitMargin()" class="grid gap-4 py-2">
+          <div class="grid gap-2">
+            <label hlmLabel>Margen (%)</label>
+            <input hlmInput type="number" min="0" max="500" step="1" formControlName="marginPercent" />
+          </div>
+          @if (formError()) {
+            <p class="text-destructive text-sm">{{ formError() }}</p>
+          }
+          <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
+            <button hlmBtn type="button" variant="outline" hlmDialogClose>Cancelar</button>
+            <button hlmBtn type="submit" [disabled]="marginForm.invalid || submitting()">
+              @if (submitting()) { Guardando… } @else { Guardar }
+            </button>
+          </hlm-dialog-footer>
+        </form>
+      </hlm-dialog-content>
+    </hlm-dialog>
+
     <!-- Confirmar eliminación -->
     <hlm-alert-dialog #deleteConfirmRef="hlmAlertDialog">
       <hlm-alert-dialog-content *hlmAlertDialogPortal>
@@ -352,10 +395,12 @@ export class AdminRecipes {
   private readonly recipesService = inject(ProductRecipesService);
   private readonly modulesService = inject(ProductModulesService);
   private readonly materialsService = inject(MaterialsService);
+  private readonly businessSettingsService = inject(BusinessSettingsService);
 
   @ViewChild('createDialogRef') private createDialogRef!: HlmDialog;
   @ViewChild('editDialogRef') private editDialogRef!: HlmDialog;
   @ViewChild('historyDialogRef') private historyDialogRef!: HlmDialog;
+  @ViewChild('marginDialogRef') private marginDialogRef!: HlmDialog;
   @ViewChild('deleteConfirmRef') protected deleteConfirmRef!: HlmAlertDialog;
 
   protected readonly submitting = signal(false);
@@ -366,6 +411,7 @@ export class AdminRecipes {
   protected readonly recipes = signal<ProductRecipeResponse[]>([]);
   protected readonly selectedRecipe = signal<ProductRecipeResponse | null>(null);
   protected readonly historyItems = signal<ProductRecipeHistoryItemResponse[]>([]);
+  protected readonly marginOverCost = signal(0.4);
 
   protected readonly search = signal('');
   protected readonly moduleFilter = signal('');
@@ -400,10 +446,15 @@ export class AdminRecipes {
     quantity: [1, [Validators.required, Validators.min(1)]],
   });
 
+  protected readonly marginForm = this.fb.nonNullable.group({
+    marginPercent: [40, [Validators.required, Validators.min(0), Validators.max(500)]],
+  });
+
   private searchTimeout?: ReturnType<typeof setTimeout>;
 
   constructor() {
     this.materialsService.listAll().subscribe((data) => this.materials.set(data));
+    this.businessSettingsService.get().subscribe((data) => this.marginOverCost.set(data.marginOverCost));
     this.reload();
   }
 
@@ -475,6 +526,31 @@ export class AdminRecipes {
     this.recipesService
       .getHistory(recipe.productModuleId, recipe.materialId)
       .subscribe((data) => this.historyItems.set(data));
+  }
+
+  protected openMargin(): void {
+    this.formError.set(null);
+    this.marginForm.reset({ marginPercent: Math.round(this.marginOverCost() * 100) });
+    this.marginDialogRef.open();
+  }
+
+  protected submitMargin(): void {
+    if (this.marginForm.invalid) return;
+    this.submitting.set(true);
+    this.formError.set(null);
+
+    const marginOverCost = this.marginForm.getRawValue().marginPercent / 100;
+    this.businessSettingsService.update({ marginOverCost }).subscribe({
+      next: (data) => {
+        this.submitting.set(false);
+        this.marginOverCost.set(data.marginOverCost);
+        this.marginDialogRef.close();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.submitting.set(false);
+        this.formError.set(this.extractError(err, 'No se pudo actualizar el margen.'));
+      },
+    });
   }
 
   protected openDeleteConfirm(recipe: ProductRecipeResponse): void {
