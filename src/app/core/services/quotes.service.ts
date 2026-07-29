@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { BulkAffectedResult } from '../models/material.model';
 import { PagedResult } from '../models/paged-result.model';
 import { CreateQuoteRequest, DecideQuoteRequest, QuoteResponse, QuotesQuery } from '../models/quote.model';
+import { SaleResponse } from '../models/sale.model';
 
 @Injectable({ providedIn: 'root' })
 export class QuotesService {
@@ -51,5 +52,9 @@ export class QuotesService {
       status,
       adminNotes,
     });
+  }
+
+  convertToSale(id: string): Observable<SaleResponse> {
+    return this.http.post<SaleResponse>(`${environment.apiUrl}/quotes/${id}/convert-to-sale`, {});
   }
 }

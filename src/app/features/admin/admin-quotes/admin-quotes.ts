@@ -293,12 +293,20 @@ const COUNT_LABELS: { key: keyof QuoteResponse; label: string }[] = [
               }
             </div>
           }
+          @if (convertError()) {
+            <p class="text-destructive text-sm">{{ convertError() }}</p>
+          }
         </div>
         <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
           <button hlmBtn type="button" variant="outline" hlmDialogClose>Cerrar</button>
           @if (selectedQuote()?.status === 'Pending') {
             <button hlmBtn type="button" variant="outline" (click)="openDecisionFromDetail('reject')">Rechazar</button>
             <button hlmBtn type="button" (click)="openDecisionFromDetail('approve')">Aprobar</button>
+          }
+          @if (selectedQuote()?.status === 'Approved') {
+            <button hlmBtn type="button" [disabled]="converting()" (click)="convertToSale()">
+              @if (converting()) { Convirtiendo… } @else { Convertir a venta }
+            </button>
           }
         </hlm-dialog-footer>
       </hlm-dialog-content>
@@ -349,6 +357,8 @@ export class AdminQuotes {
   protected readonly decisionKind = signal<DecisionKind>('approve');
   protected readonly submitting = signal(false);
   protected readonly actionError = signal<string | null>(null);
+  protected readonly converting = signal(false);
+  protected readonly convertError = signal<string | null>(null);
   protected readonly selectedIds = signal<Set<string>>(new Set());
 
   protected readonly allSelected = computed(() => {
@@ -442,6 +452,7 @@ export class AdminQuotes {
 
   protected openDetail(quote: QuoteResponse): void {
     this.selectedQuote.set(quote);
+    this.convertError.set(null);
     this.detailDialogRef.open();
   }
 
@@ -457,6 +468,25 @@ export class AdminQuotes {
     if (!quote) return;
     this.detailDialogRef.close();
     this.openDecision(quote, kind);
+  }
+
+  protected convertToSale(): void {
+    const quote = this.selectedQuote();
+    if (!quote) return;
+    this.converting.set(true);
+    this.convertError.set(null);
+
+    this.quotesService.convertToSale(quote.id).subscribe({
+      next: () => {
+        this.converting.set(false);
+        this.detailDialogRef.close();
+        this.reload();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.converting.set(false);
+        this.convertError.set(this.extractError(err, 'No se pudo convertir la cotización.'));
+      },
+    });
   }
 
   protected submitDecision(): void {

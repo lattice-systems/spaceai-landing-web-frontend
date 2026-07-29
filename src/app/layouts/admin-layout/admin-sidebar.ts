@@ -3,6 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideBadgeDollarSign,
   lucideBeaker,
   lucideBox,
   lucideChevronsUpDown,
@@ -33,6 +34,7 @@ const MAIN_NAV = [
   { label: 'Proveedores', route: '/admin/proveedores', icon: 'lucideTruck' },
   { label: 'Compras', route: '/admin/compras', icon: 'lucideReceipt' },
   { label: 'Cotizaciones', route: '/admin/cotizaciones', icon: 'lucideQuote' },
+  { label: 'Ventas', route: '/admin/ventas', icon: 'lucideBadgeDollarSign' },
   { label: 'Reseñas', route: '/admin/resenas', icon: 'lucideStar' },
   { label: 'Mensajes', route: '/admin/mensajes', icon: 'lucideMail' },
   { label: 'Soporte', route: '/admin/soporte', icon: 'lucideLifeBuoy' },
@@ -53,6 +55,7 @@ const SECONDARY_NAV = [{ label: 'Inicio público', route: '/', icon: 'lucideHome
   ],
   providers: [
     provideIcons({
+      lucideBadgeDollarSign,
       lucideBeaker,
       lucideBox,
       lucideChevronsUpDown,
