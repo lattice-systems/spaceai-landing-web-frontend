@@ -9,9 +9,7 @@ import { HlmInputImports } from '@spartan-ng/helm/input';
 import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmTextareaImports } from '@spartan-ng/helm/textarea';
 import { AuthService } from '../../../core/services/auth.service';
-import { ProductModuleResponse } from '../../../core/models/product-module.model';
-import { ReviewResponse } from '../../../core/models/review.model';
-import { ProductModulesService } from '../../../core/services/product-modules.service';
+import { EligibleModuleResponse, ReviewResponse } from '../../../core/models/review.model';
 import { ReviewsService } from '../../../core/services/reviews.service';
 import { StatusChip } from '../../../shared/status-chip/status-chip';
 
@@ -57,6 +55,10 @@ import { StatusChip } from '../../../shared/status-chip/status-chip';
                     />
                     {{ module.name }}
                   </label>
+                } @empty {
+                  <p class="text-muted-foreground text-xs">
+                    Todavía no tienes cotizaciones aprobadas — necesitas al menos una para poder opinar.
+                  </p>
                 }
               </div>
               @if (submitAttempted() && selectedModuleIds().size === 0) {
@@ -116,14 +118,13 @@ import { StatusChip } from '../../../shared/status-chip/status-chip';
 export class ClientReviews {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
-  private readonly productModulesService = inject(ProductModulesService);
   private readonly reviewsService = inject(ReviewsService);
 
   protected readonly submitting = signal(false);
   protected readonly submitted = signal(false);
   protected readonly submitAttempted = signal(false);
   protected readonly submitError = signal<string | null>(null);
-  protected readonly productModules = signal<ProductModuleResponse[]>([]);
+  protected readonly productModules = signal<EligibleModuleResponse[]>([]);
   protected readonly selectedModuleIds = signal<Set<string>>(new Set());
   private readonly allReviews = signal<ReviewResponse[]>([]);
 
@@ -155,7 +156,7 @@ export class ClientReviews {
   });
 
   constructor() {
-    this.productModulesService.listAll().subscribe((data) => this.productModules.set(data));
+    this.reviewsService.getEligibleModules().subscribe((data) => this.productModules.set(data));
     this.reload();
   }
 

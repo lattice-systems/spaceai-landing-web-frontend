@@ -4,7 +4,13 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BulkAffectedResult } from '../models/material.model';
 import { PagedResult } from '../models/paged-result.model';
-import { CreateReviewRequest, DecideReviewRequest, ReviewResponse, ReviewsQuery } from '../models/review.model';
+import {
+  CreateReviewRequest,
+  DecideReviewRequest,
+  EligibleModuleResponse,
+  ReviewResponse,
+  ReviewsQuery,
+} from '../models/review.model';
 
 @Injectable({ providedIn: 'root' })
 export class ReviewsService {
@@ -46,5 +52,9 @@ export class ReviewsService {
 
   bulkDecide(ids: string[], status: 'Approved' | 'Rejected'): Observable<BulkAffectedResult> {
     return this.http.post<BulkAffectedResult>(`${environment.apiUrl}/reviews/bulk-status`, { ids, status });
+  }
+
+  getEligibleModules(): Observable<EligibleModuleResponse[]> {
+    return this.http.get<EligibleModuleResponse[]>(`${environment.apiUrl}/reviews/eligible-modules`);
   }
 }

@@ -16,6 +16,11 @@ export interface DecideReviewRequest {
   adminNotes?: string;
 }
 
+export interface EligibleModuleResponse {
+  id: string;
+  name: string;
+}
+
 export interface CreateReviewRequest {
   productModuleId: string;
   rating: number;
