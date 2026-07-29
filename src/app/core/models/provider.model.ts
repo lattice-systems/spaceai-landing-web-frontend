@@ -6,6 +6,10 @@ export interface ProviderResponse {
   phone: string;
   address: string;
   providerType: string;
+  taxId: string | null;
+  bankName: string | null;
+  bankAccount: string | null;
+  certifications: string | null;
   isActive: boolean;
   purchaseCount: number;
   createdAt: string;
@@ -19,6 +23,10 @@ export interface CreateProviderRequest {
   phone: string;
   address: string;
   providerType: string;
+  taxId?: string;
+  bankName?: string;
+  bankAccount?: string;
+  certifications?: string;
 }
 
 export interface UpdateProviderRequest {
@@ -28,6 +36,10 @@ export interface UpdateProviderRequest {
   phone: string;
   address: string;
   providerType: string;
+  taxId?: string;
+  bankName?: string;
+  bankAccount?: string;
+  certifications?: string;
 }
 
 export interface ProvidersQuery {

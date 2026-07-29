@@ -294,6 +294,31 @@ const PROVIDER_TYPES = ['Hardware', 'Software', 'Servicios', 'Logística', 'Otro
             <label hlmLabel>Dirección</label>
             <input hlmInput placeholder="Calle, ciudad, país" formControlName="address" />
           </div>
+
+          <div class="border-border grid gap-4 border-t pt-4">
+            <p class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Datos fiscales</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="grid gap-2">
+                <label hlmLabel>RFC (opcional)</label>
+                <input hlmInput placeholder="XAXX010101000" formControlName="taxId" />
+              </div>
+              <div class="grid gap-2">
+                <label hlmLabel>Certificaciones (opcional)</label>
+                <input hlmInput placeholder="ISO 9001, etc." formControlName="certifications" />
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="grid gap-2">
+                <label hlmLabel>Banco (opcional)</label>
+                <input hlmInput placeholder="BBVA" formControlName="bankName" />
+              </div>
+              <div class="grid gap-2">
+                <label hlmLabel>Cuenta/CLABE (opcional)</label>
+                <input hlmInput placeholder="012345678901234567" formControlName="bankAccount" />
+              </div>
+            </div>
+          </div>
+
           @if (formError()) {
             <p class="text-destructive text-sm">{{ formError() }}</p>
           }
@@ -348,6 +373,31 @@ const PROVIDER_TYPES = ['Hardware', 'Software', 'Servicios', 'Logística', 'Otro
             <label hlmLabel>Dirección</label>
             <input hlmInput placeholder="Calle, ciudad, país" formControlName="address" />
           </div>
+
+          <div class="border-border grid gap-4 border-t pt-4">
+            <p class="text-muted-foreground text-xs font-medium uppercase tracking-wide">Datos fiscales</p>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="grid gap-2">
+                <label hlmLabel>RFC (opcional)</label>
+                <input hlmInput placeholder="XAXX010101000" formControlName="taxId" />
+              </div>
+              <div class="grid gap-2">
+                <label hlmLabel>Certificaciones (opcional)</label>
+                <input hlmInput placeholder="ISO 9001, etc." formControlName="certifications" />
+              </div>
+            </div>
+            <div class="grid gap-4 sm:grid-cols-2">
+              <div class="grid gap-2">
+                <label hlmLabel>Banco (opcional)</label>
+                <input hlmInput placeholder="BBVA" formControlName="bankName" />
+              </div>
+              <div class="grid gap-2">
+                <label hlmLabel>Cuenta/CLABE (opcional)</label>
+                <input hlmInput placeholder="012345678901234567" formControlName="bankAccount" />
+              </div>
+            </div>
+          </div>
+
           @if (formError()) {
             <p class="text-destructive text-sm">{{ formError() }}</p>
           }
@@ -452,6 +502,10 @@ export class AdminProviders {
     phone: [''],
     address: [''],
     providerType: ['', Validators.required],
+    taxId: [''],
+    bankName: [''],
+    bankAccount: [''],
+    certifications: [''],
   });
 
   protected readonly editForm = this.fb.nonNullable.group({
@@ -461,6 +515,10 @@ export class AdminProviders {
     phone: [''],
     address: [''],
     providerType: ['', Validators.required],
+    taxId: [''],
+    bankName: [''],
+    bankAccount: [''],
+    certifications: [''],
   });
 
   private searchTimeout?: ReturnType<typeof setTimeout>;
@@ -516,7 +574,18 @@ export class AdminProviders {
 
   protected openCreate(): void {
     this.formError.set(null);
-    this.createForm.reset({ name: '', contactPerson: '', email: '', phone: '', address: '', providerType: '' });
+    this.createForm.reset({
+      name: '',
+      contactPerson: '',
+      email: '',
+      phone: '',
+      address: '',
+      providerType: '',
+      taxId: '',
+      bankName: '',
+      bankAccount: '',
+      certifications: '',
+    });
     this.createDialogRef.open();
   }
 
@@ -530,6 +599,10 @@ export class AdminProviders {
       phone: provider.phone,
       address: provider.address,
       providerType: provider.providerType,
+      taxId: provider.taxId ?? '',
+      bankName: provider.bankName ?? '',
+      bankAccount: provider.bankAccount ?? '',
+      certifications: provider.certifications ?? '',
     });
     this.editDialogRef.open();
   }
