@@ -94,6 +94,11 @@ export const routes: Routes = [
           import('./features/admin/admin-support/admin-support').then((m) => m.AdminSupport),
       },
       {
+        path: 'auditoria',
+        loadComponent: () =>
+          import('./features/admin/admin-audit-log/admin-audit-log').then((m) => m.AdminAuditLog),
+      },
+      {
         path: 'materiales',
         loadComponent: () =>
           import('./features/admin/admin-materials/admin-materials').then((m) => m.AdminMaterials),
