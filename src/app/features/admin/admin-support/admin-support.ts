@@ -4,7 +4,9 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal, ViewChild }
 import { ActivatedRoute } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideLifeBuoy, lucideSearch, lucideSend, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
+import { lucideLifeBuoy, lucideSearch, lucideSend } from '@ng-icons/lucide';
+import { toast } from '@spartan-ng/brain/sonner';
+import { TableSkeleton } from '../../../shared/table-skeleton/table-skeleton';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -35,8 +37,9 @@ type StatusFilter = 'all' | 'Open' | 'InProgress' | 'Closed';
     HlmDialogImports,
     HlmPaginationImports,
     StatusChip,
+    TableSkeleton,
   ],
-  providers: [provideIcons({ lucideLifeBuoy, lucideSearch, lucideSend, lucideTriangleAlert, lucideX })],
+  providers: [provideIcons({ lucideLifeBuoy, lucideSearch, lucideSend })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-3 p-4 pt-0">
@@ -76,21 +79,6 @@ type StatusFilter = 'all' | 'Open' | 'InProgress' | 'Closed';
         </hlm-native-select>
       </div>
 
-      @if (actionError()) {
-        <div class="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border p-3 text-sm">
-          <ng-icon name="lucideTriangleAlert" class="mt-0.5 shrink-0 text-base" />
-          <p class="flex-1">{{ actionError() }}</p>
-          <button
-            type="button"
-            class="text-destructive/70 hover:text-destructive"
-            aria-label="Cerrar"
-            (click)="actionError.set(null)"
-          >
-            <ng-icon name="lucideX" />
-          </button>
-        </div>
-      }
-
       <div hlmCard class="gap-0 overflow-hidden rounded-xl py-0">
         <div hlmTableContainer>
           <table hlmTable>
@@ -105,6 +93,11 @@ type StatusFilter = 'all' | 'Open' | 'InProgress' | 'Closed';
               </tr>
             </thead>
             <tbody hlmTBody>
+              @if (loading()) {
+                <tr hlmTr>
+                  <td hlmTd colspan="6"><app-table-skeleton [cols]="6" /></td>
+                </tr>
+              } @else {
               @for (ticket of page().data; track ticket.id) {
                 <tr hlmTr>
                   <td hlmTd class="text-foreground font-medium">{{ ticket.institutionName }}</td>
@@ -134,6 +127,7 @@ type StatusFilter = 'all' | 'Open' | 'InProgress' | 'Closed';
                     Sin tickets que coincidan con la búsqueda.
                   </td>
                 </tr>
+              }
               }
             </tbody>
           </table>
@@ -242,7 +236,7 @@ export class AdminSupport {
   protected readonly messages = signal<SupportTicketMessageResponse[]>([]);
   protected readonly sendingMessage = signal(false);
   protected readonly messageError = signal<string | null>(null);
-  protected readonly actionError = signal<string | null>(null);
+  protected readonly loading = signal(true);
   protected readonly messageControl = new FormControl('', { nonNullable: true });
 
   private searchTimeout?: ReturnType<typeof setTimeout>;
@@ -312,14 +306,13 @@ export class AdminSupport {
     const ticket = this.selectedTicket();
     if (!ticket || !value || value === ticket.status) return;
 
-    this.actionError.set(null);
     this.supportTicketsService.updateStatus(ticket.id, value).subscribe({
       next: (updated) => {
         this.selectedTicket.set(updated);
         this.reload();
       },
       error: (err: HttpErrorResponse) =>
-        this.actionError.set(this.extractError(err, 'No se pudo actualizar el estado.')),
+        toast.error(this.extractError(err, 'No se pudo actualizar el estado.')),
     });
   }
 
@@ -351,6 +344,7 @@ export class AdminSupport {
   }
 
   private reload(): void {
+    this.loading.set(true);
     this.supportTicketsService
       .list({
         pageNumber: this.pageNumber(),
@@ -358,6 +352,9 @@ export class AdminSupport {
         search: this.search() || undefined,
         status: this.statusFilter() === 'all' ? undefined : this.statusFilter(),
       })
-      .subscribe((result) => this.page.set(result));
+      .subscribe((result) => {
+        this.page.set(result);
+        this.loading.set(false);
+      });
   }
 }

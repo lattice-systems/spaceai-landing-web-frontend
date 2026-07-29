@@ -11,8 +11,6 @@ import {
   lucidePlus,
   lucideSearch,
   lucideTrash2,
-  lucideTriangleAlert,
-  lucideX,
 } from '@ng-icons/lucide';
 import { HlmAlertDialogImports, HlmAlertDialog } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
@@ -33,6 +31,8 @@ import { PagedResult } from '../../../core/models/paged-result.model';
 import { ProductModuleResponse } from '../../../core/models/product-module.model';
 import { ProductResponse } from '../../../core/models/product.model';
 import { StatusChip } from '../../../shared/status-chip/status-chip';
+import { toast } from '@spartan-ng/brain/sonner';
+import { TableSkeleton } from '../../../shared/table-skeleton/table-skeleton';
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 type CatalogTab = 'modules' | 'products';
@@ -58,6 +58,7 @@ type CatalogTab = 'modules' | 'products';
     HlmAlertDialogImports,
     HlmPaginationImports,
     StatusChip,
+    TableSkeleton,
   ],
   providers: [
     provideIcons({
@@ -68,8 +69,6 @@ type CatalogTab = 'modules' | 'products';
       lucidePlus,
       lucideSearch,
       lucideTrash2,
-      lucideTriangleAlert,
-      lucideX,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -110,21 +109,6 @@ type CatalogTab = 'modules' | 'products';
           <button hlmTabsTrigger="products">Productos</button>
         </hlm-tabs-list>
       </hlm-tabs>
-
-      @if (actionError()) {
-        <div class="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border p-3 text-sm">
-          <ng-icon name="lucideTriangleAlert" class="mt-0.5 shrink-0 text-base" />
-          <p class="flex-1">{{ actionError() }}</p>
-          <button
-            type="button"
-            class="text-destructive/70 hover:text-destructive"
-            aria-label="Cerrar"
-            (click)="actionError.set(null)"
-          >
-            <ng-icon name="lucideX" />
-          </button>
-        </div>
-      }
 
       @if (activeTab() === 'modules') {
         <!-- ── Tab Módulos ─────────────────────────────────────────────── -->
@@ -187,6 +171,11 @@ type CatalogTab = 'modules' | 'products';
                 </tr>
               </thead>
               <tbody hlmTBody>
+                @if (loadingModules()) {
+                  <tr hlmTr>
+                    <td hlmTd colspan="6"><app-table-skeleton [cols]="6" /></td>
+                  </tr>
+                } @else {
                 @for (module of modulesPage().data; track module.id) {
                   <tr hlmTr [attr.data-state]="moduleSelectedIds().has(module.id) ? 'selected' : null">
                     <td hlmTd>
@@ -257,6 +246,7 @@ type CatalogTab = 'modules' | 'products';
                     </td>
                   </tr>
                 }
+                }
               </tbody>
             </table>
           </div>
@@ -322,6 +312,11 @@ type CatalogTab = 'modules' | 'products';
                 </tr>
               </thead>
               <tbody hlmTBody>
+                @if (loadingProducts()) {
+                  <tr hlmTr>
+                    <td hlmTd colspan="6"><app-table-skeleton [cols]="6" /></td>
+                  </tr>
+                } @else {
                 @for (product of productsPage().data; track product.id) {
                   <tr hlmTr [attr.data-state]="productSelectedIds().has(product.id) ? 'selected' : null">
                     <td hlmTd>
@@ -385,6 +380,7 @@ type CatalogTab = 'modules' | 'products';
                       Sin productos que coincidan con la búsqueda.
                     </td>
                   </tr>
+                }
                 }
               </tbody>
             </table>
@@ -654,7 +650,8 @@ export class AdminProducts {
   protected readonly products = signal<ProductResponse[]>([]);
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
-  protected readonly actionError = signal<string | null>(null);
+  protected readonly loadingModules = signal(true);
+  protected readonly loadingProducts = signal(true);
 
   // ── Estado tab Módulos ──────────────────────────────────────────────
   protected readonly moduleSearch = signal('');
@@ -750,7 +747,6 @@ export class AdminProducts {
 
   protected onTabChange(tab: string): void {
     this.activeTab.set(tab as CatalogTab);
-    this.actionError.set(null);
   }
 
   // ── Handlers tab Módulos ────────────────────────────────────────────
@@ -844,11 +840,10 @@ export class AdminProducts {
   }
 
   protected activateModule(module: ProductModuleResponse): void {
-    this.actionError.set(null);
     this.modulesService.activate(module.id).subscribe({
       next: () => this.reloadModules(),
       error: (err: HttpErrorResponse) =>
-        this.actionError.set(this.extractError(err, 'No se pudo activar el módulo.')),
+        toast.error(this.extractError(err, 'No se pudo activar el módulo.')),
     });
   }
 
@@ -972,11 +967,10 @@ export class AdminProducts {
   }
 
   protected activateProduct(product: ProductResponse): void {
-    this.actionError.set(null);
     this.productsService.activate(product.id).subscribe({
       next: () => this.reloadProducts(),
       error: (err: HttpErrorResponse) =>
-        this.actionError.set(this.extractError(err, 'No se pudo activar el producto.')),
+        toast.error(this.extractError(err, 'No se pudo activar el producto.')),
     });
   }
 
@@ -1030,9 +1024,9 @@ export class AdminProducts {
   private reportBulkResult(affected: number, skipped: string[]): void {
     // Nunca fallar en silencio en acciones en lote: si algo se omitió, se explica por qué.
     if (skipped.length > 0) {
-      this.actionError.set(`${affected} aplicados. Omitidos: ${skipped.join(' ')}`);
+      toast.error(`${affected} aplicados. Omitidos: ${skipped.join(' ')}`);
     } else {
-      this.actionError.set(null);
+      toast.success(`${affected} aplicados.`);
     }
   }
 
@@ -1048,6 +1042,7 @@ export class AdminProducts {
   }
 
   private reloadModules(): void {
+    this.loadingModules.set(true);
     this.modulesService
       .list({
         pageNumber: this.modulePageNumber(),
@@ -1056,10 +1051,14 @@ export class AdminProducts {
         search: this.moduleSearch() || undefined,
         isActive: this.moduleStatusFilter() === 'all' ? undefined : this.moduleStatusFilter() === 'active',
       })
-      .subscribe((result) => this.modulesPage.set(result));
+      .subscribe((result) => {
+        this.modulesPage.set(result);
+        this.loadingModules.set(false);
+      });
   }
 
   private reloadProducts(): void {
+    this.loadingProducts.set(true);
     this.productsService
       .list({
         pageNumber: this.productPageNumber(),
@@ -1067,6 +1066,9 @@ export class AdminProducts {
         search: this.productSearch() || undefined,
         isActive: this.productStatusFilter() === 'all' ? undefined : this.productStatusFilter() === 'active',
       })
-      .subscribe((result) => this.productsPage.set(result));
+      .subscribe((result) => {
+        this.productsPage.set(result);
+        this.loadingProducts.set(false);
+      });
   }
 }

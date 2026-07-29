@@ -13,8 +13,6 @@ import {
   lucideReceipt,
   lucideSearch,
   lucideTrash2,
-  lucideTriangleAlert,
-  lucideX,
 } from '@ng-icons/lucide';
 import { HlmAlertDialogImports, HlmAlertDialog } from '@spartan-ng/helm/alert-dialog';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
@@ -36,6 +34,8 @@ import { MaterialsService } from '../../../core/services/materials.service';
 import { ProvidersService } from '../../../core/services/providers.service';
 import { PurchasesService } from '../../../core/services/purchases.service';
 import { StatusChip } from '../../../shared/status-chip/status-chip';
+import { toast } from '@spartan-ng/brain/sonner';
+import { TableSkeleton } from '../../../shared/table-skeleton/table-skeleton';
 
 type StatusFilter = 'all' | 'Pending' | 'PartiallyReceived' | 'Received' | 'Cancelled';
 type BoardStatus = 'Pending' | 'PartiallyReceived' | 'Received' | 'Cancelled';
@@ -69,6 +69,7 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
     HlmPaginationImports,
     HlmTabsImports,
     StatusChip,
+    TableSkeleton,
   ],
   providers: [
     provideIcons({
@@ -80,8 +81,6 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
       lucideReceipt,
       lucideSearch,
       lucideTrash2,
-      lucideTriangleAlert,
-      lucideX,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -157,20 +156,6 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
         }
       </div>
 
-      @if (actionError()) {
-        <div class="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border p-3 text-sm">
-          <ng-icon name="lucideTriangleAlert" class="mt-0.5 shrink-0 text-base" />
-          <p class="flex-1">{{ actionError() }}</p>
-          <button
-            type="button"
-            class="text-destructive/70 hover:text-destructive"
-            aria-label="Cerrar"
-            (click)="actionError.set(null)"
-          >
-            <ng-icon name="lucideX" />
-          </button>
-        </div>
-      }
 
       @if (view() === 'table') {
       <div hlmCard class="gap-0 overflow-hidden rounded-xl py-0">
@@ -188,6 +173,11 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
               </tr>
             </thead>
             <tbody hlmTBody>
+              @if (loading()) {
+                <tr hlmTr>
+                  <td hlmTd colspan="5"><app-table-skeleton [cols]="5" /></td>
+                </tr>
+              } @else {
               @for (purchase of page().data; track purchase.id) {
                 <tr hlmTr>
                   <td hlmTd class="text-foreground font-medium">{{ purchase.providerName }}</td>
@@ -247,6 +237,7 @@ const BOARD_COLUMNS: { status: BoardStatus; label: string }[] = [
                     Sin compras que coincidan con la búsqueda.
                   </td>
                 </tr>
+              }
               }
             </tbody>
           </table>
@@ -548,7 +539,7 @@ export class AdminPurchases {
   protected readonly selectedPurchase = signal<PurchaseResponse | null>(null);
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
-  protected readonly actionError = signal<string | null>(null);
+  protected readonly loading = signal(true);
 
   protected readonly form = this.fb.nonNullable.group({
     providerId: ['', Validators.required],
@@ -757,7 +748,6 @@ export class AdminPurchases {
   protected confirmCancel(): void {
     const purchase = this.selectedPurchase();
     if (!purchase) return;
-    this.actionError.set(null);
     this.purchasesService.cancel(purchase.id).subscribe({
       next: () => {
         this.cancelConfirmRef.close();
@@ -765,7 +755,7 @@ export class AdminPurchases {
       },
       error: (err: HttpErrorResponse) => {
         this.cancelConfirmRef.close();
-        this.actionError.set(this.extractError(err, 'No se pudo cancelar la compra.'));
+        toast.error(this.extractError(err, 'No se pudo cancelar la compra.'));
       },
     });
   }
@@ -827,6 +817,7 @@ export class AdminPurchases {
   }
 
   private reload(): void {
+    this.loading.set(true);
     this.purchasesService
       .list({
         pageNumber: this.pageNumber(),
@@ -835,7 +826,10 @@ export class AdminPurchases {
         providerId: this.providerFilter() || undefined,
         status: this.statusFilter() === 'all' ? undefined : this.statusFilter(),
       })
-      .subscribe((result) => this.page.set(result));
+      .subscribe((result) => {
+        this.page.set(result);
+        this.loading.set(false);
+      });
 
     if (this.view() === 'board') this.loadBoard();
   }

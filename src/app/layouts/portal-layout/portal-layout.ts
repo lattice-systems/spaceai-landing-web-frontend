@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, ViewEncapsulation } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HlmSidebarImports } from '@spartan-ng/helm/sidebar';
+import { HlmToasterImports } from '@spartan-ng/helm/sonner';
 import { PortalHeader } from './portal-header';
 import { PortalSidebar } from './portal-sidebar';
 
 @Component({
   selector: 'app-portal-layout',
-  imports: [RouterOutlet, HlmSidebarImports, PortalHeader, PortalSidebar],
+  imports: [RouterOutlet, HlmSidebarImports, HlmToasterImports, PortalHeader, PortalSidebar],
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -19,6 +20,7 @@ import { PortalSidebar } from './portal-sidebar';
         <router-outlet />
       </main>
     </app-portal-sidebar>
+    <hlm-toaster richColors closeButton />
   `,
 })
 export class PortalLayout {}

@@ -11,10 +11,8 @@ import {
   lucidePlus,
   lucideSearch,
   lucideTrash2,
-  lucideTriangleAlert,
   lucideUserCheck,
   lucideUserX,
-  lucideX,
 } from '@ng-icons/lucide';
 import { HlmAlertDialogImports, HlmAlertDialog } from '@spartan-ng/helm/alert-dialog';
 import { HlmAvatarImports } from '@spartan-ng/helm/avatar';
@@ -30,6 +28,8 @@ import { HlmNativeSelectImports } from '@spartan-ng/helm/native-select';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { toast } from '@spartan-ng/brain/sonner';
+import { TableSkeleton } from '../../../shared/table-skeleton/table-skeleton';
 import { AuthService } from '../../../core/services/auth.service';
 import { ClientsService } from '../../../core/services/clients.service';
 import { RolesService } from '../../../core/services/roles.service';
@@ -63,6 +63,7 @@ type StatusFilter = 'all' | 'active' | 'inactive';
     HlmAlertDialogImports,
     HlmPaginationImports,
     StatusChip,
+    TableSkeleton,
   ],
   providers: [
     provideIcons({
@@ -73,10 +74,8 @@ type StatusFilter = 'all' | 'active' | 'inactive';
       lucidePlus,
       lucideSearch,
       lucideTrash2,
-      lucideTriangleAlert,
       lucideUserCheck,
       lucideUserX,
-      lucideX,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -130,21 +129,6 @@ type StatusFilter = 'all' | 'active' | 'inactive';
         </hlm-native-select>
       </div>
 
-      @if (actionError()) {
-        <div class="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border p-3 text-sm">
-          <ng-icon name="lucideTriangleAlert" class="mt-0.5 shrink-0 text-base" />
-          <p class="flex-1">{{ actionError() }}</p>
-          <button
-            type="button"
-            class="text-destructive/70 hover:text-destructive"
-            aria-label="Cerrar"
-            (click)="actionError.set(null)"
-          >
-            <ng-icon name="lucideX" />
-          </button>
-        </div>
-      }
-
       @if (selectedIds().size > 0) {
         <div class="bg-muted/50 border-border flex items-center gap-3 rounded-lg border p-3">
           <p class="text-sm font-medium">{{ selectedIds().size }} seleccionados</p>
@@ -181,6 +165,13 @@ type StatusFilter = 'all' | 'active' | 'inactive';
               </tr>
             </thead>
             <tbody hlmTBody>
+              @if (loading()) {
+                <tr hlmTr>
+                  <td hlmTd [attr.colspan]="activeRole() === 'Client' ? 7 : 6">
+                    <app-table-skeleton [cols]="activeRole() === 'Client' ? 7 : 6" />
+                  </td>
+                </tr>
+              } @else {
               @for (user of page().data; track user.id) {
                 <tr hlmTr [attr.data-state]="selectedIds().has(user.id) ? 'selected' : null">
                   <td hlmTd>
@@ -265,6 +256,7 @@ type StatusFilter = 'all' | 'active' | 'inactive';
                     Sin usuarios que coincidan con la búsqueda.
                   </td>
                 </tr>
+              }
               }
             </tbody>
           </table>
@@ -472,12 +464,12 @@ export class AdminUsers {
     pageSize: 10,
     data: [],
   });
+  protected readonly loading = signal(true);
   protected readonly selectedIds = signal<Set<string>>(new Set());
   protected readonly roles = signal<RoleResponse[]>([]);
   protected readonly selectedUser = signal<UserResponse | null>(null);
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
-  protected readonly actionError = signal<string | null>(null);
   protected readonly currentUserId = computed(() => this.authService.user()?.id ?? null);
 
   protected readonly allSelected = computed(() => {
@@ -678,26 +670,23 @@ export class AdminUsers {
   }
 
   protected activateOne(user: UserResponse): void {
-    this.actionError.set(null);
     this.usersService.activate(user.id).subscribe({
       next: () => this.reload(),
-      error: (err: HttpErrorResponse) => this.actionError.set(this.extractError(err, 'No se pudo activar el usuario.')),
+      error: (err: HttpErrorResponse) => toast.error(this.extractError(err, 'No se pudo activar el usuario.')),
     });
   }
 
   protected deactivateOne(user: UserResponse): void {
-    this.actionError.set(null);
     this.usersService.deactivate(user.id).subscribe({
       next: () => this.reload(),
       error: (err: HttpErrorResponse) =>
-        this.actionError.set(this.extractError(err, 'No se pudo desactivar el usuario.')),
+        toast.error(this.extractError(err, 'No se pudo desactivar el usuario.')),
     });
   }
 
   protected confirmDeleteOne(): void {
     const user = this.selectedUser();
     if (!user) return;
-    this.actionError.set(null);
     this.usersService.remove(user.id).subscribe({
       next: () => {
         this.deleteConfirmRef.close();
@@ -705,7 +694,7 @@ export class AdminUsers {
       },
       error: (err: HttpErrorResponse) => {
         this.deleteConfirmRef.close();
-        this.actionError.set(this.extractError(err, 'No se pudo eliminar el usuario.'));
+        toast.error(this.extractError(err, 'No se pudo eliminar el usuario.'));
       },
     });
   }
@@ -729,7 +718,11 @@ export class AdminUsers {
   }
 
   private reportBulkResult(affected: number, skipped: string[]): void {
-    this.actionError.set(skipped.length > 0 ? `${affected} aplicados. Omitidos: ${skipped.join(' ')}` : null);
+    if (skipped.length > 0) {
+      toast.error(`${affected} aplicados. Omitidos: ${skipped.join(' ')}`);
+    } else {
+      toast.success(`${affected} aplicados.`);
+    }
   }
 
   private extractError(err: HttpErrorResponse, fallback: string): string {
@@ -743,6 +736,7 @@ export class AdminUsers {
   }
 
   private reload(): void {
+    this.loading.set(true);
     this.usersService
       .list({
         pageNumber: this.pageNumber(),
@@ -752,6 +746,9 @@ export class AdminUsers {
         isActive:
           this.statusFilter() === 'all' ? undefined : this.statusFilter() === 'active',
       })
-      .subscribe((result) => this.page.set(result));
+      .subscribe((result) => {
+        this.page.set(result);
+        this.loading.set(false);
+      });
   }
 }

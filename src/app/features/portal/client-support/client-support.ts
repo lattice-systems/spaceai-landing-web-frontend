@@ -3,7 +3,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideLifeBuoy, lucidePlus, lucideSend, lucideTriangleAlert, lucideX } from '@ng-icons/lucide';
+import { lucideLifeBuoy, lucidePlus, lucideSend } from '@ng-icons/lucide';
+import { toast } from '@spartan-ng/brain/sonner';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
@@ -31,7 +32,7 @@ import { StatusChip } from '../../../shared/status-chip/status-chip';
     HlmDialogImports,
     StatusChip,
   ],
-  providers: [provideIcons({ lucideLifeBuoy, lucidePlus, lucideSend, lucideTriangleAlert, lucideX })],
+  providers: [provideIcons({ lucideLifeBuoy, lucidePlus, lucideSend })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -53,21 +54,6 @@ import { StatusChip } from '../../../shared/status-chip/status-chip';
           Nuevo ticket
         </button>
       </div>
-
-      @if (actionError()) {
-        <div class="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border p-3 text-sm">
-          <ng-icon name="lucideTriangleAlert" class="mt-0.5 shrink-0 text-base" />
-          <p class="flex-1">{{ actionError() }}</p>
-          <button
-            type="button"
-            class="text-destructive/70 hover:text-destructive"
-            aria-label="Cerrar"
-            (click)="actionError.set(null)"
-          >
-            <ng-icon name="lucideX" />
-          </button>
-        </div>
-      }
 
       <div class="grid gap-3">
         @for (ticket of tickets(); track ticket.id) {
@@ -206,7 +192,6 @@ export class ClientSupport {
   protected readonly sendingMessage = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly messageError = signal<string | null>(null);
-  protected readonly actionError = signal<string | null>(null);
   protected readonly messageControl = new FormControl('', { nonNullable: true });
 
   protected readonly form = this.fb.nonNullable.group({
@@ -303,7 +288,7 @@ export class ClientSupport {
   private refresh(): void {
     this.supportTicketsService.listAll().subscribe({
       next: (data) => this.tickets.set(data),
-      error: () => this.actionError.set('No se pudo actualizar la lista de tickets.'),
+      error: () => toast.error('No se pudo actualizar la lista de tickets.'),
     });
   }
 

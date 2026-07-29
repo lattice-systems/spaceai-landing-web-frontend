@@ -9,8 +9,6 @@ import {
   lucideEllipsis,
   lucideMail,
   lucideSearch,
-  lucideTriangleAlert,
-  lucideX,
 } from '@ng-icons/lucide';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -26,6 +24,8 @@ import { ContactMessageResponse } from '../../../core/models/contact-message.mod
 import { PagedResult } from '../../../core/models/paged-result.model';
 import { ContactMessagesService } from '../../../core/services/contact-messages.service';
 import { StatusChip } from '../../../shared/status-chip/status-chip';
+import { toast } from '@spartan-ng/brain/sonner';
+import { TableSkeleton } from '../../../shared/table-skeleton/table-skeleton';
 
 type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
 
@@ -45,9 +45,10 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
     HlmDialogImports,
     HlmPaginationImports,
     StatusChip,
+    TableSkeleton,
   ],
   providers: [
-    provideIcons({ lucideCheck, lucideCopy, lucideEllipsis, lucideMail, lucideSearch, lucideTriangleAlert, lucideX }),
+    provideIcons({ lucideCheck, lucideCopy, lucideEllipsis, lucideMail, lucideSearch }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -87,20 +88,6 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
         </hlm-native-select>
       </div>
 
-      @if (actionError()) {
-        <div class="border-destructive/30 bg-destructive/10 text-destructive flex items-start gap-2 rounded-lg border p-3 text-sm">
-          <ng-icon name="lucideTriangleAlert" class="mt-0.5 shrink-0 text-base" />
-          <p class="flex-1">{{ actionError() }}</p>
-          <button
-            type="button"
-            class="text-destructive/70 hover:text-destructive"
-            aria-label="Cerrar"
-            (click)="actionError.set(null)"
-          >
-            <ng-icon name="lucideX" />
-          </button>
-        </div>
-      }
 
       @if (selectedIds().size > 0) {
         <div class="bg-muted/50 border-border flex items-center gap-3 rounded-lg border p-3">
@@ -129,6 +116,11 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
               </tr>
             </thead>
             <tbody hlmTBody>
+              @if (loading()) {
+                <tr hlmTr>
+                  <td hlmTd colspan="7"><app-table-skeleton [cols]="7" /></td>
+                </tr>
+              } @else {
               @for (msg of page().data; track msg.id) {
                 <tr hlmTr [attr.data-state]="selectedIds().has(msg.id) ? 'selected' : null">
                   <td hlmTd>
@@ -206,6 +198,7 @@ type StatusFilter = 'all' | 'Pending' | 'Answered' | 'Archived';
                   </td>
                 </tr>
               }
+              }
             </tbody>
           </table>
         </div>
@@ -276,8 +269,8 @@ export class AdminMessages {
   });
   protected readonly selectedIds = signal<Set<string>>(new Set());
   protected readonly selectedMessage = signal<ContactMessageResponse | null>(null);
-  protected readonly actionError = signal<string | null>(null);
   protected readonly copiedEmail = signal<string | null>(null);
+  protected readonly loading = signal(true);
 
   protected readonly allSelected = computed(() => {
     const data = this.page().data;
@@ -387,19 +380,18 @@ export class AdminMessages {
   }
 
   private setStatusOne(call: ReturnType<ContactMessagesService['markAnswered']>): void {
-    this.actionError.set(null);
     call.subscribe({
       next: () => this.reload(),
       error: (err: HttpErrorResponse) =>
-        this.actionError.set(this.extractError(err, 'No se pudo actualizar el mensaje.')),
+        toast.error(this.extractError(err, 'No se pudo actualizar el mensaje.')),
     });
   }
 
   private reportBulkResult(affected: number, skipped: string[]): void {
     if (skipped.length > 0) {
-      this.actionError.set(`${affected} aplicados. Omitidos: ${skipped.join(' ')}`);
+      toast.error(`${affected} aplicados. Omitidos: ${skipped.join(' ')}`);
     } else {
-      this.actionError.set(null);
+      toast.success(`${affected} aplicados.`);
     }
   }
 
@@ -410,6 +402,7 @@ export class AdminMessages {
   }
 
   private reload(): void {
+    this.loading.set(true);
     this.contactMessagesService
       .list({
         pageNumber: this.pageNumber(),
@@ -417,6 +410,9 @@ export class AdminMessages {
         search: this.search() || undefined,
         status: this.statusFilter() === 'all' ? undefined : this.statusFilter(),
       })
-      .subscribe((result) => this.page.set(result));
+      .subscribe((result) => {
+        this.page.set(result);
+        this.loading.set(false);
+      });
   }
 }
