@@ -1,7 +1,9 @@
 import { DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, effect, inject, signal, ViewChild } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideHistory } from '@ng-icons/lucide';
+import { toast } from '@spartan-ng/brain/sonner';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmDialogImports, HlmDialog } from '@spartan-ng/helm/dialog';
@@ -190,6 +192,12 @@ export class AdminAuditLog {
     this.detailDialogRef.open();
   }
 
+  private extractError(err: HttpErrorResponse, fallback: string): string {
+    const errors = err.error?.errors as string[] | undefined;
+    if (errors?.length) return errors.join(' ');
+    return err.error?.message || fallback;
+  }
+
   private reload(): void {
     this.auditLogsService
       .list({
@@ -198,6 +206,9 @@ export class AdminAuditLog {
         entityName: this.entityFilter() || undefined,
         action: this.actionFilter() || undefined,
       })
-      .subscribe((result) => this.page.set(result));
+      .subscribe({
+        next: (result) => this.page.set(result),
+        error: (err: HttpErrorResponse) => toast.error(this.extractError(err, 'No se pudo cargar la auditoría.')),
+      });
   }
 }

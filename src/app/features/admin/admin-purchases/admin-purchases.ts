@@ -794,6 +794,8 @@ export class AdminPurchases {
         }
         this.boardData.set(grouped);
       });
+    // Sin error handler aquí a propósito: si falla, la vista tabla (que sí lo maneja) ya
+    // avisó via toast en el mismo reload() — el board queda con el último estado bueno.
   }
 
   protected onBoardDrop(event: CdkDragDrop<PurchaseResponse[]>, targetStatus: BoardStatus): void {
@@ -826,9 +828,15 @@ export class AdminPurchases {
         providerId: this.providerFilter() || undefined,
         status: this.statusFilter() === 'all' ? undefined : this.statusFilter(),
       })
-      .subscribe((result) => {
-        this.page.set(result);
-        this.loading.set(false);
+      .subscribe({
+        next: (result) => {
+          this.page.set(result);
+          this.loading.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loading.set(false);
+          toast.error(this.extractError(err, 'No se pudo cargar la lista de compras.'));
+        },
       });
 
     if (this.view() === 'board') this.loadBoard();

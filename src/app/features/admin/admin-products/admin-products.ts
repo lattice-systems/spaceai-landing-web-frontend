@@ -1051,9 +1051,15 @@ export class AdminProducts {
         search: this.moduleSearch() || undefined,
         isActive: this.moduleStatusFilter() === 'all' ? undefined : this.moduleStatusFilter() === 'active',
       })
-      .subscribe((result) => {
-        this.modulesPage.set(result);
-        this.loadingModules.set(false);
+      .subscribe({
+        next: (result) => {
+          this.modulesPage.set(result);
+          this.loadingModules.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loadingModules.set(false);
+          toast.error(this.extractError(err, 'No se pudo cargar la lista de módulos.'));
+        },
       });
   }
 
@@ -1066,9 +1072,15 @@ export class AdminProducts {
         search: this.productSearch() || undefined,
         isActive: this.productStatusFilter() === 'all' ? undefined : this.productStatusFilter() === 'active',
       })
-      .subscribe((result) => {
-        this.productsPage.set(result);
-        this.loadingProducts.set(false);
+      .subscribe({
+        next: (result) => {
+          this.productsPage.set(result);
+          this.loadingProducts.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loadingProducts.set(false);
+          toast.error(this.extractError(err, 'No se pudo cargar la lista de productos.'));
+        },
       });
   }
 }

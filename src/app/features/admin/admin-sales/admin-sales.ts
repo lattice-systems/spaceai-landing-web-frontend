@@ -1,7 +1,9 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBadgeDollarSign } from '@ng-icons/lucide';
+import { toast } from '@spartan-ng/brain/sonner';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
@@ -112,10 +114,22 @@ export class AdminSales {
   }
 
   protected markDelivered(sale: SaleResponse): void {
-    this.salesService.updateStatus(sale.id, 'Delivered').subscribe(() => this.reload());
+    this.salesService.updateStatus(sale.id, 'Delivered').subscribe({
+      next: () => this.reload(),
+      error: (err: HttpErrorResponse) => toast.error(this.extractError(err, 'No se pudo actualizar la venta.')),
+    });
+  }
+
+  private extractError(err: HttpErrorResponse, fallback: string): string {
+    const errors = err.error?.errors as string[] | undefined;
+    if (errors?.length) return errors.join(' ');
+    return err.error?.message || fallback;
   }
 
   private reload(): void {
-    this.salesService.list(this.pageNumber(), this.pageSize()).subscribe((result) => this.page.set(result));
+    this.salesService.list(this.pageNumber(), this.pageSize()).subscribe({
+      next: (result) => this.page.set(result),
+      error: (err: HttpErrorResponse) => toast.error(this.extractError(err, 'No se pudo cargar la lista de ventas.')),
+    });
   }
 }

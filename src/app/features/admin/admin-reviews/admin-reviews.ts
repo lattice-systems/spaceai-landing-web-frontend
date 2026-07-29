@@ -439,9 +439,15 @@ export class AdminReviews {
         search: this.search() || undefined,
         status: this.statusFilter() === 'all' ? undefined : this.statusFilter(),
       })
-      .subscribe((result) => {
-        this.page.set(result);
-        this.loading.set(false);
+      .subscribe({
+        next: (result) => {
+          this.page.set(result);
+          this.loading.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loading.set(false);
+          toast.error(this.extractError(err, 'No se pudo cargar la lista de reseñas.'));
+        },
       });
   }
 }

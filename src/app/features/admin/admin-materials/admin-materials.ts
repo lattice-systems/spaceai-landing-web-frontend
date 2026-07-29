@@ -701,9 +701,15 @@ export class AdminMaterials {
         isActive: this.statusFilter() === 'all' ? undefined : this.statusFilter() === 'active',
         lowStock: this.stockFilter() === 'low' ? true : undefined,
       })
-      .subscribe((result) => {
-        this.page.set(result);
-        this.loading.set(false);
+      .subscribe({
+        next: (result) => {
+          this.page.set(result);
+          this.loading.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loading.set(false);
+          toast.error(this.extractError(err, 'No se pudo cargar la lista de materiales.'));
+        },
       });
   }
 }

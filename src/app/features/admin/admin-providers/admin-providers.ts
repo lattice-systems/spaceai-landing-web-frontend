@@ -710,9 +710,15 @@ export class AdminProviders {
         isActive: this.statusFilter() === 'all' ? undefined : this.statusFilter() === 'active',
         providerType: this.typeFilter() || undefined,
       })
-      .subscribe((result) => {
-        this.page.set(result);
-        this.loading.set(false);
+      .subscribe({
+        next: (result) => {
+          this.page.set(result);
+          this.loading.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.loading.set(false);
+          toast.error(this.extractError(err, 'No se pudo cargar la lista de proveedores.'));
+        },
       });
   }
 }
