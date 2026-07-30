@@ -142,10 +142,10 @@ type StatusFilter = 'all' | 'Pending' | 'Approved' | 'Rejected';
                       }
                     </span>
                   </td>
-                  <td hlmTd class="text-muted-foreground max-w-md">
+                  <td hlmTd>
                     <button
                       type="button"
-                      class="hover:text-foreground line-clamp-2 cursor-pointer text-left"
+                      class="text-muted-foreground hover:text-foreground max-w-sm cursor-pointer truncate text-left text-sm"
                       (click)="openDetail(review)"
                     >
                       {{ review.comment }}
