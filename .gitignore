@@ -70,3 +70,5 @@ AGENTS.md
 
 # Nx cache
 .nx/
+.vercel
+.env*
