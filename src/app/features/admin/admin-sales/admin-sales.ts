@@ -9,7 +9,7 @@ import { HlmCardImports } from '@spartan-ng/helm/card';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { PagedResult } from '../../../core/models/paged-result.model';
-import { SaleResponse } from '../../../core/models/sale.model';
+import { SaleResponse, SalesProfitability } from '../../../core/models/sale.model';
 import { SalesService } from '../../../core/services/sales.service';
 import { StatusChip } from '../../../shared/status-chip/status-chip';
 
@@ -35,6 +35,33 @@ import { StatusChip } from '../../../shared/status-chip/status-chip';
         </div>
       </div>
 
+      @if (profit(); as p) {
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div hlmCard class="gap-1 p-4">
+            <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Ingresos</p>
+            <p class="text-foreground text-2xl font-semibold tabular-nums">{{ p.totalRevenue | currency: 'USD' }}</p>
+            <p class="text-muted-foreground text-xs">{{ p.salesCount }} venta(s)</p>
+          </div>
+          <div hlmCard class="gap-1 p-4">
+            <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Costo de ventas</p>
+            <p class="text-foreground text-2xl font-semibold tabular-nums">{{ p.totalCost | currency: 'USD' }}</p>
+            <p class="text-muted-foreground text-xs">Costo promedio ponderado</p>
+          </div>
+          <div hlmCard class="gap-1 p-4">
+            <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Utilidad bruta</p>
+            <p class="text-2xl font-semibold tabular-nums" style="color: var(--chip-emerald)">
+              {{ p.grossProfit | currency: 'USD' }}
+            </p>
+            <p class="text-muted-foreground text-xs">Ingresos menos costo</p>
+          </div>
+          <div hlmCard class="gap-1 p-4">
+            <p class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Margen</p>
+            <p class="text-foreground text-2xl font-semibold tabular-nums">{{ p.marginPercent }}%</p>
+            <p class="text-muted-foreground text-xs">Sobre ingresos</p>
+          </div>
+        </div>
+      }
+
       <div hlmCard class="gap-0 overflow-hidden rounded-xl py-0">
         <div hlmTableContainer>
           <table hlmTable>
@@ -43,6 +70,9 @@ import { StatusChip } from '../../../shared/status-chip/status-chip';
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Institución</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Solicitante</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Total</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Costo</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Utilidad</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Margen</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Estado</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Fecha</th>
                 <th hlmTh class="w-10 text-right"><span class="sr-only">Acciones</span></th>
@@ -53,7 +83,12 @@ import { StatusChip } from '../../../shared/status-chip/status-chip';
                 <tr hlmTr>
                   <td hlmTd class="font-medium">{{ sale.institutionName }}</td>
                   <td hlmTd class="text-muted-foreground">{{ sale.requesterName }}</td>
-                  <td hlmTd>{{ sale.total | currency: 'USD' }}</td>
+                  <td hlmTd class="tabular-nums">{{ sale.total | currency: 'USD' }}</td>
+                  <td hlmTd class="text-muted-foreground tabular-nums">{{ sale.totalCost | currency: 'USD' }}</td>
+                  <td hlmTd class="tabular-nums" style="color: var(--chip-emerald)">
+                    {{ sale.grossProfit | currency: 'USD' }}
+                  </td>
+                  <td hlmTd class="text-muted-foreground tabular-nums">{{ sale.marginPercent }}%</td>
                   <td hlmTd>
                     <app-status-chip [label]="statusLabel(sale.status)" [chip]="statusChip(sale.status)" />
                   </td>
@@ -66,7 +101,7 @@ import { StatusChip } from '../../../shared/status-chip/status-chip';
                 </tr>
               } @empty {
                 <tr hlmTr>
-                  <td hlmTd colspan="6" class="text-muted-foreground text-center">
+                  <td hlmTd colspan="9" class="text-muted-foreground text-center">
                     Sin ventas todavía — se generan al convertir una cotización aprobada.
                   </td>
                 </tr>
@@ -96,6 +131,7 @@ export class AdminSales {
     pageSize: 10,
     data: [],
   });
+  protected readonly profit = signal<SalesProfitability | null>(null);
 
   constructor() {
     effect(() => {
@@ -130,6 +166,13 @@ export class AdminSales {
     this.salesService.list(this.pageNumber(), this.pageSize()).subscribe({
       next: (result) => this.page.set(result),
       error: (err: HttpErrorResponse) => toast.error(this.extractError(err, 'No se pudo cargar la lista de ventas.')),
+    });
+
+    // El resumen es global (no paginado), así que se recarga junto con la tabla para que
+    // no quede desfasado tras marcar una venta como entregada.
+    this.salesService.profitability().subscribe({
+      next: (result) => this.profit.set(result),
+      error: (err: HttpErrorResponse) => toast.error(this.extractError(err, 'No se pudo cargar el resumen de ganancias.')),
     });
   }
 }

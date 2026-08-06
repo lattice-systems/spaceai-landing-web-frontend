@@ -3,7 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PagedResult } from '../models/paged-result.model';
-import { SaleResponse } from '../models/sale.model';
+import { SaleResponse, SalesProfitability } from '../models/sale.model';
 
 @Injectable({ providedIn: 'root' })
 export class SalesService {
@@ -12,6 +12,11 @@ export class SalesService {
   list(pageNumber: number, pageSize: number): Observable<PagedResult<SaleResponse>> {
     const params = new HttpParams().set('pageNumber', pageNumber).set('pageSize', pageSize);
     return this.http.get<PagedResult<SaleResponse>>(`${environment.apiUrl}/sales`, { params });
+  }
+
+  /** Ingresos, costo de ventas y utilidad bruta, global y por mes. */
+  profitability(): Observable<SalesProfitability> {
+    return this.http.get<SalesProfitability>(`${environment.apiUrl}/sales/profitability`);
   }
 
   updateStatus(id: string, status: 'Pending' | 'Delivered'): Observable<SaleResponse> {
