@@ -98,7 +98,7 @@ const LAYERS = [
 const SHOWCASE = [
   { device: 'device device-macbook-pro device-spacegray', screen: '/screenshots/admin.png', alt: 'Panel de administración SpaceIA',    label: 'Panel administrativo' },
   { device: 'device device-ipad-pro device-silver',       screen: '/screenshots/side.png',  alt: 'Kiosco SIDE en tablet',              label: 'Kiosco SIDE' },
-  { device: 'device device-iphone-x',                     screen: '/mobile/movil-qr.svg',   alt: 'Credencial digital en la app móvil', label: 'App móvil' },
+  { device: 'device device-iphone-x',                     screen: '/mobile/movil-qr.jpeg',  alt: 'Credencial digital en la app móvil', label: 'App móvil' },
 ] as const;
 
 function observe1(el: HTMLElement, cb: () => void): void {
@@ -172,6 +172,31 @@ function observe1(el: HTMLElement, cb: () => void): void {
     @media (prefers-reduced-motion: reduce) {
       .pulse-node {
         animation: none;
+      }
+    }
+
+    .showcase-stage {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* devices.css usa tamaños fijos grandes (MacBook 600px, etc). Se reduce el
+       track con zoom para que quepa sin desbordar: en móvil apilado en columna
+       (cada dispositivo cabe en el viewport), en desktop en fila los 3 juntos. */
+    .showcase-track {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3rem;
+      zoom: 0.62;
+    }
+
+    @media (min-width: 1024px) {
+      .showcase-track {
+        flex-direction: row;
+        align-items: flex-end;
+        gap: 2.5rem;
+        zoom: 0.78;
       }
     }
 
@@ -409,9 +434,8 @@ function observe1(el: HTMLElement, cb: () => void): void {
             Una sola plataforma, en cada pantalla del campus.
           </h2>
         </div>
-        <div
-          class="flex flex-col items-center gap-20 lg:flex-row lg:items-end lg:justify-center"
-        >
+        <div class="showcase-stage">
+          <div class="showcase-track">
           @for (item of showcase; track item.label; let i = $index) {
             <figure
               #showcaseItem
@@ -436,6 +460,7 @@ function observe1(el: HTMLElement, cb: () => void): void {
               </figcaption>
             </figure>
           }
+          </div>
         </div>
       </section>
 
@@ -453,22 +478,22 @@ function observe1(el: HTMLElement, cb: () => void): void {
           </p>
         </div>
         <div class="grid gap-4 sm:grid-cols-2">
-          <figure class="border-border bg-card relative aspect-[4/3] overflow-hidden rounded-lg border">
+          <figure class="border-border bg-muted relative aspect-[4/5] overflow-hidden rounded-lg border">
             <img
               ngSrc="/cart/carrito-completo.jpeg"
-              alt="Carrito inteligente SpaceIA — vista completa"
+              alt="Carrito inteligente SpaceIA — unidad completa con mástil sensor"
               fill
               sizes="(min-width: 640px) 50vw, 100vw"
-              class="object-cover"
+              class="object-contain"
             />
           </figure>
-          <figure class="border-border bg-card relative aspect-[4/3] overflow-hidden rounded-lg border">
+          <figure class="border-border bg-muted relative aspect-[4/5] overflow-hidden rounded-lg border">
             <img
               ngSrc="/cart/carrito-parteabajo.jpeg"
-              alt="Carrito inteligente SpaceIA — base y sensórica"
+              alt="Carrito inteligente SpaceIA — base motriz y sensórica"
               fill
               sizes="(min-width: 640px) 50vw, 100vw"
-              class="object-cover"
+              class="object-contain"
             />
           </figure>
         </div>

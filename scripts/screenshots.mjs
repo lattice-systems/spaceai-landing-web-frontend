@@ -69,6 +69,17 @@ async function main() {
     await page.click('button[type="submit"]');
     await page.waitForURL('**/admin/**', { timeout: 45000 });
     await page.waitForLoadState('networkidle');
+    // Esperar a que se resuelvan los skeletons/shimmer del dashboard (datos reales).
+    await page
+      .waitForFunction(
+        () =>
+          document.querySelectorAll(
+            '[class*="pulse"],[class*="skeleton"],[class*="shimmer"]',
+          ).length === 0,
+        { timeout: 20000 },
+      )
+      .catch(() => console.warn('  (skeletons no resueltos a tiempo, captura igual)'));
+    await page.waitForTimeout(2000);
     await shot(page, 'admin');
   });
 
