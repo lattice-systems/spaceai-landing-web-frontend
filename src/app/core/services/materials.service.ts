@@ -6,6 +6,7 @@ import { PagedResult } from '../models/paged-result.model';
 import {
   BulkAffectedResult,
   CreateMaterialRequest,
+  MaterialKardexResponse,
   MaterialResponse,
   MaterialsQuery,
   UpdateMaterialRequest,
@@ -46,6 +47,12 @@ export class MaterialsService {
 
   adjustStock(id: string, delta: number, reason: string): Observable<MaterialResponse> {
     return this.http.put<MaterialResponse>(`${environment.apiUrl}/materials/${id}/adjust-stock`, { delta, reason });
+  }
+
+  /** Kardex: movimientos en orden cronológico con el saldo que dejó cada uno. */
+  kardex(id: string, pageNumber = 1, pageSize = 50): Observable<MaterialKardexResponse> {
+    const params = new HttpParams().set('pageNumber', pageNumber).set('pageSize', pageSize);
+    return this.http.get<MaterialKardexResponse>(`${environment.apiUrl}/materials/${id}/kardex`, { params });
   }
 
   activate(id: string): Observable<void> {

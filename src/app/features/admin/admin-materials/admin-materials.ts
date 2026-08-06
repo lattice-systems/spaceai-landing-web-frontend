@@ -10,6 +10,7 @@ import {
   lucideEllipsis,
   lucidePencil,
   lucidePlus,
+  lucideScrollText,
   lucideSearch,
   lucideTrash2,
 } from '@ng-icons/lucide';
@@ -27,7 +28,7 @@ import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { MaterialsService } from '../../../core/services/materials.service';
 import { PagedResult } from '../../../core/models/paged-result.model';
-import { MaterialResponse } from '../../../core/models/material.model';
+import { MaterialKardexResponse, MaterialResponse } from '../../../core/models/material.model';
 import { StatusChip } from '../../../shared/status-chip/status-chip';
 import { toast } from '@spartan-ng/brain/sonner';
 import { TableSkeleton } from '../../../shared/table-skeleton/table-skeleton';
@@ -64,6 +65,7 @@ type StockFilter = 'all' | 'low';
       lucideEllipsis,
       lucidePencil,
       lucidePlus,
+      lucideScrollText,
       lucideSearch,
       lucideTrash2,
     }),
@@ -82,7 +84,8 @@ type StockFilter = 'all' | 'low';
           <div>
             <h1 class="text-foreground text-xl font-semibold tracking-tight">Materia prima</h1>
             <p class="text-muted-foreground text-sm">
-              Costo unitario de cada material. De aquí sale el precio de venta de los módulos.
+              Método de costeo: costo promedio ponderado. Cada compra recibida repondera el
+              costo, y de ahí sale el precio de venta de los módulos.
             </p>
           </div>
         </div>
@@ -143,8 +146,10 @@ type StockFilter = 'all' | 'low';
                 </th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Material</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Unidad</th>
-                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Costo unitario</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Costo promedio</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Último costo</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Stock</th>
+                <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Valor inventario</th>
                 <th hlmTh class="text-muted-foreground text-xs font-medium tracking-wide uppercase">Estado</th>
                 <th hlmTh class="w-10 text-right">
                   <span class="sr-only">Acciones</span>
@@ -154,7 +159,7 @@ type StockFilter = 'all' | 'low';
             <tbody hlmTBody>
               @if (loading()) {
                 <tr hlmTr>
-                  <td hlmTd colspan="7"><app-table-skeleton [cols]="7" /></td>
+                  <td hlmTd colspan="9"><app-table-skeleton [cols]="9" /></td>
                 </tr>
               } @else {
               @for (material of page().data; track material.id) {
@@ -171,10 +176,13 @@ type StockFilter = 'all' | 'low';
                     </div>
                   </td>
                   <td hlmTd class="text-muted-foreground">{{ material.unitOfMeasure }}</td>
-                  <td hlmTd class="text-muted-foreground">{{ material.unitCost | currency: 'USD' }}</td>
+                  <td hlmTd class="text-foreground font-medium tabular-nums">
+                    {{ material.averageCost | currency: 'USD' }}
+                  </td>
+                  <td hlmTd class="text-muted-foreground tabular-nums">{{ material.unitCost | currency: 'USD' }}</td>
                   <td hlmTd>
                     <div class="flex items-center gap-1.5">
-                      <span class="text-muted-foreground">
+                      <span class="text-muted-foreground tabular-nums">
                         {{ material.currentStock }} (mín. {{ material.minimumStock }})
                       </span>
                       @if (isLowStock(material)) {
@@ -182,6 +190,7 @@ type StockFilter = 'all' | 'low';
                       }
                     </div>
                   </td>
+                  <td hlmTd class="text-muted-foreground tabular-nums">{{ material.stockValue | currency: 'USD' }}</td>
                   <td hlmTd>
                     <app-status-chip
                       [label]="material.isActive ? 'Activo' : 'Inactivo'"
@@ -209,6 +218,10 @@ type StockFilter = 'all' | 'low';
                           <ng-icon name="lucideArrowUpDown" />
                           Ajustar stock
                         </button>
+                        <button hlmDropdownMenuItem (click)="openKardex(material)">
+                          <ng-icon name="lucideScrollText" />
+                          Ver kardex
+                        </button>
                         <hlm-dropdown-menu-separator />
                         @if (material.isActive) {
                           <button hlmDropdownMenuItem (click)="deactivateOne(material)">Desactivar</button>
@@ -226,7 +239,7 @@ type StockFilter = 'all' | 'low';
                 </tr>
               } @empty {
                 <tr hlmTr>
-                  <td hlmTd colspan="7" class="text-muted-foreground text-center">
+                  <td hlmTd colspan="9" class="text-muted-foreground text-center">
                     Sin materiales que coincidan con la búsqueda.
                   </td>
                 </tr>
@@ -250,7 +263,10 @@ type StockFilter = 'all' | 'low';
       <hlm-dialog-content *hlmDialogPortal class="w-full sm:max-w-xl">
         <hlm-dialog-header>
           <h3 hlmDialogTitle>Nuevo material</h3>
-          <p hlmDialogDescription>Se crea activo. El costo unitario alimenta el motor de costeo de recetas.</p>
+          <p hlmDialogDescription>
+            Se crea activo. El stock inicial entra al kardex como movimiento de apertura y fija el costo promedio
+            de arranque.
+          </p>
         </hlm-dialog-header>
         <form [formGroup]="createForm" (ngSubmit)="submitCreate()" class="grid gap-5 py-2">
           <div class="grid gap-2">
@@ -316,8 +332,15 @@ type StockFilter = 'all' | 'low';
               <input hlmInput placeholder="pieza, kg, m…" formControlName="unitOfMeasure" />
             </div>
             <div class="grid gap-2">
-              <label hlmLabel>Costo unitario (USD)</label>
+              <label hlmLabel>Último costo de referencia (USD)</label>
               <input hlmInput type="number" min="0" step="0.01" formControlName="unitCost" />
+              @if ((selectedMaterial()?.currentStock ?? 0) > 0) {
+                <p class="text-muted-foreground text-xs">
+                  El costo promedio ({{ selectedMaterial()?.averageCost | currency: 'USD' }}) no cambia al editar
+                  esto: solo se repondera al recibir compras. Sin existencias, el costo nuevo pasa a ser el promedio
+                  de arranque.
+                </p>
+              }
               @if ((selectedMaterial()?.recipeCount ?? 0) > 0) {
                 <p class="text-muted-foreground text-xs">
                   {{ selectedMaterial()?.recipeCount }} receta(s) ya usan este material a su costo actual — no se
@@ -328,14 +351,14 @@ type StockFilter = 'all' | 'low';
           </div>
           <div class="grid gap-4 sm:grid-cols-2">
             <div class="grid gap-2">
-              <label hlmLabel>Stock actual</label>
-              <input hlmInput type="number" min="0" formControlName="currentStock" />
-            </div>
-            <div class="grid gap-2">
               <label hlmLabel>Stock mínimo</label>
               <input hlmInput type="number" min="0" formControlName="minimumStock" />
             </div>
           </div>
+          <p class="text-muted-foreground text-xs">
+            El stock actual ({{ selectedMaterial()?.currentStock }}) no se edita desde aquí — usa “Ajustar stock” o
+            recibe una compra, para que el movimiento quede en el kardex.
+          </p>
           @if (formError()) {
             <p class="text-destructive text-sm">{{ formError() }}</p>
           }
@@ -356,7 +379,8 @@ type StockFilter = 'all' | 'low';
           <h3 hlmDialogTitle>Ajustar stock</h3>
           <p hlmDialogDescription>
             {{ selectedMaterial()?.name }} — stock actual: {{ selectedMaterial()?.currentStock }}
-            {{ selectedMaterial()?.unitOfMeasure }}.
+            {{ selectedMaterial()?.unitOfMeasure }}. El ajuste entra o sale al costo promedio vigente
+            ({{ selectedMaterial()?.averageCost | currency: 'USD' }}), sin moverlo.
           </p>
         </hlm-dialog-header>
         <form [formGroup]="adjustStockForm" (ngSubmit)="submitAdjustStock()" class="grid gap-4 py-2">
@@ -378,6 +402,86 @@ type StockFilter = 'all' | 'low';
             </button>
           </hlm-dialog-footer>
         </form>
+      </hlm-dialog-content>
+    </hlm-dialog>
+
+    <!-- Kardex (costo promedio ponderado) -->
+    <hlm-dialog #kardexDialogRef="hlmDialog">
+      <hlm-dialog-content *hlmDialogPortal class="w-full sm:max-w-3xl">
+        <hlm-dialog-header>
+          <h3 hlmDialogTitle>Kardex — {{ kardex()?.materialName }}</h3>
+          <p hlmDialogDescription>
+            Cada movimiento con el saldo que dejó. Las entradas repoderan el costo promedio; las salidas
+            se valúan al promedio vigente y no lo cambian.
+          </p>
+        </hlm-dialog-header>
+
+        @if (kardex(); as k) {
+          <div class="grid grid-cols-3 gap-3 py-2">
+            <div class="bg-muted/40 rounded-lg p-3">
+              <p class="text-muted-foreground text-xs tracking-wide uppercase">Existencia</p>
+              <p class="text-foreground font-semibold tabular-nums">{{ k.currentStock }} {{ k.unitOfMeasure }}</p>
+            </div>
+            <div class="bg-muted/40 rounded-lg p-3">
+              <p class="text-muted-foreground text-xs tracking-wide uppercase">Costo promedio</p>
+              <p class="text-foreground font-semibold tabular-nums">{{ k.averageCost | currency: 'USD' }}</p>
+            </div>
+            <div class="bg-muted/40 rounded-lg p-3">
+              <p class="text-muted-foreground text-xs tracking-wide uppercase">Valor</p>
+              <p class="text-foreground font-semibold tabular-nums">{{ k.stockValue | currency: 'USD' }}</p>
+            </div>
+          </div>
+
+          <div hlmTableContainer class="max-h-96">
+            <table hlmTable>
+              <thead hlmTHead>
+                <tr hlmTr class="bg-muted/40 hover:bg-muted/40">
+                  <th hlmTh class="text-muted-foreground text-xs tracking-wide uppercase">Fecha</th>
+                  <th hlmTh class="text-muted-foreground text-xs tracking-wide uppercase">Tipo</th>
+                  <th hlmTh class="text-muted-foreground text-xs tracking-wide uppercase">Cant.</th>
+                  <th hlmTh class="text-muted-foreground text-xs tracking-wide uppercase">Costo unit.</th>
+                  <th hlmTh class="text-muted-foreground text-xs tracking-wide uppercase">Saldo cant.</th>
+                  <th hlmTh class="text-muted-foreground text-xs tracking-wide uppercase">Saldo prom.</th>
+                  <th hlmTh class="text-muted-foreground text-xs tracking-wide uppercase">Saldo valor</th>
+                  <th hlmTh class="text-muted-foreground text-xs tracking-wide uppercase">Motivo</th>
+                </tr>
+              </thead>
+              <tbody hlmTBody>
+                @for (m of k.data; track m.id) {
+                  <tr hlmTr>
+                    <td hlmTd class="text-muted-foreground whitespace-nowrap">{{ m.createdAt | date: 'short' }}</td>
+                    <td hlmTd>
+                      <app-status-chip
+                        [label]="m.movementType === 'In' ? 'Entrada' : 'Salida'"
+                        [chip]="m.movementType === 'In' ? '--chip-emerald' : '--chip-amber'"
+                      />
+                    </td>
+                    <td hlmTd class="tabular-nums">{{ m.quantity }}</td>
+                    <td hlmTd class="tabular-nums">{{ m.unitCost | currency: 'USD' }}</td>
+                    <td hlmTd class="text-muted-foreground tabular-nums">{{ m.balanceQuantity }}</td>
+                    <td hlmTd class="text-foreground font-medium tabular-nums">
+                      {{ m.balanceAverageCost | currency: 'USD' }}
+                    </td>
+                    <td hlmTd class="text-muted-foreground tabular-nums">
+                      {{ m.balanceTotalCost | currency: 'USD' }}
+                    </td>
+                    <td hlmTd class="text-muted-foreground max-w-48 truncate text-xs">{{ m.reason }}</td>
+                  </tr>
+                } @empty {
+                  <tr hlmTr>
+                    <td hlmTd colspan="8" class="text-muted-foreground text-center">
+                      Sin movimientos todavía — el kardex se llena al recibir compras o ajustar stock.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <hlm-dialog-footer class="border-border mt-2 border-t pt-4">
+          <button hlmBtn type="button" variant="outline" hlmDialogClose>Cerrar</button>
+        </hlm-dialog-footer>
       </hlm-dialog-content>
     </hlm-dialog>
 
@@ -436,6 +540,7 @@ export class AdminMaterials {
   @ViewChild('createDialogRef') private createDialogRef!: HlmDialog;
   @ViewChild('editDialogRef') private editDialogRef!: HlmDialog;
   @ViewChild('adjustStockDialogRef') private adjustStockDialogRef!: HlmDialog;
+  @ViewChild('kardexDialogRef') private kardexDialogRef!: HlmDialog;
   @ViewChild('deleteConfirmRef') protected deleteConfirmRef!: HlmAlertDialog;
   @ViewChild('bulkDeactivateConfirmRef') protected bulkDeactivateConfirmRef!: HlmAlertDialog;
   @ViewChild('bulkDeleteConfirmRef') protected bulkDeleteConfirmRef!: HlmAlertDialog;
@@ -453,6 +558,7 @@ export class AdminMaterials {
   });
   protected readonly selectedIds = signal<Set<string>>(new Set());
   protected readonly selectedMaterial = signal<MaterialResponse | null>(null);
+  protected readonly kardex = signal<MaterialKardexResponse | null>(null);
   protected readonly submitting = signal(false);
   protected readonly formError = signal<string | null>(null);
   protected readonly loading = signal(true);
@@ -585,6 +691,21 @@ export class AdminMaterials {
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
         this.formError.set(this.extractError(err, 'No se pudo ajustar el stock.'));
+      },
+    });
+  }
+
+  protected openKardex(material: MaterialResponse): void {
+    this.selectedMaterial.set(material);
+    // Se limpia primero para no mostrar el kardex del material anterior mientras carga.
+    this.kardex.set(null);
+    this.kardexDialogRef.open();
+
+    this.materialsService.kardex(material.id).subscribe({
+      next: (result) => this.kardex.set(result),
+      error: (err: HttpErrorResponse) => {
+        this.kardexDialogRef.close();
+        toast.error(this.extractError(err, 'No se pudo cargar el kardex.'));
       },
     });
   }
