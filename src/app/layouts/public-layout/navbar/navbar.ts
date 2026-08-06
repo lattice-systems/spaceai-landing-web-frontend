@@ -13,6 +13,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideBot,
+  lucideExternalLink,
   lucideFingerprint,
   lucideMenu,
   lucideMonitor,
@@ -22,30 +23,36 @@ import {
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { HlmNavigationMenuImports } from '@spartan-ng/helm/navigation-menu';
 
+// `portal` es la app desplegada del producto, cuando existe. Móvil (Android) y
+// Robot (hardware) no tienen portal web, así que solo llevan a su sección en /spaceai.
 const PRODUCT_ITEMS = [
   {
     label: 'Aplicación Móvil',
     icon: 'lucideSmartphone',
     fragment: 'movil',
     description: 'App campus para estudiantes y personal',
+    portal: null,
   },
   {
     label: 'Control de Acceso',
     icon: 'lucideFingerprint',
     fragment: 'acceso',
     description: 'Acceso inteligente con QR e IoT',
+    portal: 'https://caseta.spaceai.latticesystems.dev',
   },
   {
     label: 'Kiosco SIDE',
     icon: 'lucideMonitor',
     fragment: 'kiosco',
     description: 'Asistente con IA conversacional',
+    portal: 'https://app.spaceai.latticesystems.dev',
   },
   {
     label: 'Robot Autónomo',
     icon: 'lucideBot',
     fragment: 'robot',
     description: 'Guía física con navegación autónoma',
+    portal: null,
   },
 ] as const;
 
@@ -67,6 +74,7 @@ const PRODUCT_ITEMS = [
       lucideFingerprint,
       lucideMonitor,
       lucideBot,
+      lucideExternalLink,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -165,6 +173,18 @@ const PRODUCT_ITEMS = [
                           </p>
                         </div>
                       </a>
+                      @if (item.portal) {
+                        <a
+                          [href]="item.portal"
+                          target="_blank"
+                          rel="noopener"
+                          class="text-primary hover:bg-muted mx-2 mt-0.5 inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium transition-colors"
+                          [attr.aria-label]="'Abrir portal de ' + item.label + ' en una pestaña nueva'"
+                        >
+                          Abrir portal
+                          <ng-icon name="lucideExternalLink" class="size-3 shrink-0" />
+                        </a>
+                      }
                     </li>
                   }
                 </ul>
@@ -262,15 +282,32 @@ const PRODUCT_ITEMS = [
           <div class="px-3 py-2">
             <p class="text-foreground mb-1 text-sm font-medium">SpaceIA</p>
             @for (item of productItems; track item.fragment) {
-              <a
-                routerLink="/spaceai"
-                [fragment]="item.fragment"
-                class="text-muted-foreground hover:text-foreground flex items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
-                (click)="mobileOpen.set(false)"
-              >
-                <ng-icon [name]="item.icon" class="text-primary size-3.5 shrink-0" />
-                {{ item.label }}
-              </a>
+              <div class="flex items-center justify-between gap-2">
+                <a
+                  routerLink="/spaceai"
+                  [fragment]="item.fragment"
+                  class="text-muted-foreground hover:text-foreground flex flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-sm transition-colors"
+                  (click)="mobileOpen.set(false)"
+                >
+                  <ng-icon [name]="item.icon" class="text-primary size-3.5 shrink-0" />
+                  {{ item.label }}
+                </a>
+                @if (item.portal) {
+                  <a
+                    [href]="item.portal"
+                    target="_blank"
+                    rel="noopener"
+                    class="text-primary hover:bg-muted flex shrink-0 items-center gap-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors"
+                    [attr.aria-label]="
+                      'Abrir portal de ' + item.label + ' en una pestaña nueva'
+                    "
+                    (click)="mobileOpen.set(false)"
+                  >
+                    Portal
+                    <ng-icon name="lucideExternalLink" class="size-3 shrink-0" />
+                  </a>
+                }
+              </div>
             }
           </div>
 
