@@ -429,7 +429,7 @@ function observe1(el: HTMLElement, cb: () => void): void {
             <article
               #moduleCard
               [id]="product.id"
-              class="module-card group border-border bg-card relative flex scroll-mt-28 flex-col overflow-hidden rounded-3xl border p-2 hover:-translate-y-1 hover:shadow-[0_24px_60px_-24px_rgb(37_99_235_/_0.28)]"
+              class="module-card group border-border bg-card relative flex scroll-mt-44 flex-col overflow-hidden rounded-3xl border p-2 hover:-translate-y-1 hover:shadow-[0_24px_60px_-24px_rgb(37_99_235_/_0.28)]"
               [class]="product.span"
               [style.transition-delay]="i * 90 + 'ms'"
             >
