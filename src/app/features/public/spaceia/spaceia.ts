@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  viewChildren,
+} from '@angular/core';
+import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
@@ -88,9 +95,23 @@ const LAYERS = [
   'Analítica operativa',
 ] as const;
 
+const SHOWCASE = [
+  { device: 'device device-macbook-pro device-spacegray', screen: '/screenshots/admin.svg', alt: 'Panel de administración SpaceIA',    label: 'Panel administrativo' },
+  { device: 'device device-ipad-pro device-silver',       screen: '/screenshots/side.svg',  alt: 'Kiosco SIDE en tablet',              label: 'Kiosco SIDE' },
+  { device: 'device device-iphone-x',                     screen: '/mobile/movil-qr.svg',   alt: 'Credencial digital en la app móvil', label: 'App móvil' },
+] as const;
+
+function observe1(el: HTMLElement, cb: () => void): void {
+  const obs = new IntersectionObserver(
+    ([e]) => { if (e.isIntersecting) { cb(); obs.disconnect(); } },
+    { threshold: 0.1, rootMargin: '0px 0px -20px 0px' },
+  );
+  obs.observe(el);
+}
+
 @Component({
   selector: 'app-spaceia',
-  imports: [RouterLink, HlmButtonImports, NgIcon],
+  imports: [RouterLink, HlmButtonImports, NgIcon, NgOptimizedImage],
   providers: [
     provideIcons({
       lucideSmartphone,
@@ -151,6 +172,27 @@ const LAYERS = [
     @media (prefers-reduced-motion: reduce) {
       .pulse-node {
         animation: none;
+      }
+    }
+
+    .showcase-item {
+      opacity: 0;
+      transform: translateY(28px) scale(0.96);
+      transition:
+        opacity 700ms cubic-bezier(0.23, 1, 0.32, 1),
+        transform 700ms cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .showcase-item.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .showcase-item {
+        transition: none;
+        opacity: 1;
+        transform: none;
       }
     }
   `,
@@ -358,6 +400,80 @@ const LAYERS = [
         }
       </section>
 
+      <section class="showcase-sec bg-background mx-auto max-w-7xl px-6 py-20 lg:px-16">
+        <div class="mb-14 max-w-2xl">
+          <p class="text-primary mb-3 text-xs font-semibold tracking-widest uppercase">
+            Míralo en acción
+          </p>
+          <h2 class="text-foreground text-3xl font-bold tracking-tight sm:text-4xl">
+            Una sola plataforma, en cada pantalla del campus.
+          </h2>
+        </div>
+        <div
+          class="flex flex-col items-center gap-20 lg:flex-row lg:items-end lg:justify-center"
+        >
+          @for (item of showcase; track item.label; let i = $index) {
+            <figure
+              #showcaseItem
+              class="showcase-item flex flex-col items-center gap-4"
+              [style.transition-delay]="i * 120 + 'ms'"
+            >
+              <div [class]="item.device">
+                <div class="device-frame">
+                  <img class="device-screen" [src]="item.screen" [alt]="item.alt" />
+                </div>
+                <div class="device-stripe"></div>
+                <div class="device-header"></div>
+                <div class="device-sensors"></div>
+                <div class="device-btns"></div>
+                <div class="device-power"></div>
+                @if (item.device.includes('iphone')) {
+                  <div class="device-home"></div>
+                }
+              </div>
+              <figcaption class="text-muted-foreground text-sm font-medium">
+                {{ item.label }}
+              </figcaption>
+            </figure>
+          }
+        </div>
+      </section>
+
+      <section class="mx-auto max-w-7xl px-6 py-20 lg:px-16">
+        <div class="mb-10 max-w-2xl">
+          <p class="text-primary mb-3 text-xs font-semibold tracking-widest uppercase">
+            Hardware propio
+          </p>
+          <h2 class="text-foreground text-3xl font-bold tracking-tight sm:text-4xl">
+            El carrito inteligente, en físico.
+          </h2>
+          <p class="text-muted-foreground mt-4 text-base leading-relaxed">
+            Diseño y ensamblaje propios: sensórica, cómputo a bordo y batería en un chasis pensado
+            para el campus.
+          </p>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <figure class="border-border bg-card relative aspect-[4/3] overflow-hidden rounded-lg border">
+            <img
+              ngSrc="/cart/carrito-completo.jpeg"
+              alt="Carrito inteligente SpaceIA — vista completa"
+              fill
+              sizes="(min-width: 640px) 50vw, 100vw"
+              class="object-cover"
+            />
+          </figure>
+          <figure class="border-border bg-card relative aspect-[4/3] overflow-hidden rounded-lg border">
+            <img
+              ngSrc="/cart/carrito-parteabajo.jpeg"
+              alt="Carrito inteligente SpaceIA — base y sensórica"
+              fill
+              sizes="(min-width: 640px) 50vw, 100vw"
+              class="object-cover"
+            />
+          </figure>
+        </div>
+      </section>
+
       <section class="bg-muted">
         <div class="mx-auto grid max-w-7xl gap-10 px-6 py-20 lg:grid-cols-[0.9fr_1.1fr] lg:px-16">
           <div>
@@ -397,4 +513,16 @@ export class Spaceia {
   protected readonly products = PRODUCTS;
   protected readonly flow = FLOW;
   protected readonly layers = LAYERS;
+  protected readonly showcase = SHOWCASE;
+
+  private readonly showcaseItems = viewChildren<ElementRef>('showcaseItem');
+
+  constructor() {
+    afterNextRender(() => {
+      this.showcaseItems().forEach((ref, i) => {
+        const el = ref.nativeElement as HTMLElement;
+        observe1(el, () => setTimeout(() => el.classList.add('visible'), i * 120));
+      });
+    });
+  }
 }
