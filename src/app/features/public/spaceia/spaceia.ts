@@ -96,8 +96,8 @@ const LAYERS = [
 ] as const;
 
 const SHOWCASE = [
-  { device: 'device device-macbook-pro device-spacegray', screen: '/screenshots/admin.svg', alt: 'Panel de administración SpaceIA',    label: 'Panel administrativo' },
-  { device: 'device device-ipad-pro device-silver',       screen: '/screenshots/side.svg',  alt: 'Kiosco SIDE en tablet',              label: 'Kiosco SIDE' },
+  { device: 'device device-macbook-pro device-spacegray', screen: '/screenshots/admin.png', alt: 'Panel de administración SpaceIA',    label: 'Panel administrativo' },
+  { device: 'device device-ipad-pro device-silver',       screen: '/screenshots/side.png',  alt: 'Kiosco SIDE en tablet',              label: 'Kiosco SIDE' },
   { device: 'device device-iphone-x',                     screen: '/mobile/movil-qr.svg',   alt: 'Credencial digital en la app móvil', label: 'App móvil' },
 ] as const;
 
