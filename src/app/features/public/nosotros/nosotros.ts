@@ -58,7 +58,7 @@ const STATS: Stat[] = [
 const EQUIPO = [
   { initials: 'DO', name: 'Daniel Ojeda Luna',             cargo: 'Cloud & DevOps',  foto: '/team/ojeda.jpeg' },
   { initials: 'EO', name: 'Emmanuel Ortiz Reyes',          cargo: 'Backend',         foto: '/team/emmanuel.jpeg' },
-  { initials: 'JP', name: 'Juan Pablo Rea Cano',           cargo: 'Frontend',        foto: '/team/placeholder.svg' },
+  { initials: 'JP', name: 'Juan Pablo Rea Cano',           cargo: 'Frontend',        foto: '/team/pablo.jpeg' },
   { initials: 'JN', name: 'Jael Neftali Vargas Grijalva',  cargo: 'Hardware & IoT',  foto: '/team/jael.jpeg' },
   { initials: 'HG', name: 'Haziel Gutiérrez Hernández',    cargo: 'Robótica',        foto: '/team/haziel.jpeg' },
   { initials: 'EM', name: 'Emiliano Mendoza Maldonado',    cargo: 'IA & NLP',        foto: '/team/emiliano.jpeg' },
@@ -258,7 +258,7 @@ function countUp(el: HTMLElement | undefined, raw: string, dur = 1000): void {
           @for (p of equipo; track p.name; let i = $index) {
             <div #teamCard class="card-anim flex flex-col items-center gap-3 rounded-lg border border-border bg-card p-6 text-center">
               <div class="relative size-14 overflow-hidden rounded-full bg-primary/10">
-                <img [ngSrc]="p.foto" [alt]="p.name" fill sizes="56px" class="object-cover" />
+                <img [ngSrc]="p.foto" [alt]="p.name" fill class="object-cover" />
               </div>
               <div>
                 <p class="text-sm font-semibold text-foreground">{{ p.name }}</p>
