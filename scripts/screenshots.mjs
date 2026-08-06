@@ -14,6 +14,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
 
 const BASE = process.env.SHOTS_BASE ?? 'https://app.spaceai.latticesystems.dev';
+// Caseta es una app aparte (swa-spaceia-caseta), no una ruta de la web-frontend.
+const CASETA_BASE = process.env.SHOTS_CASETA_BASE ?? 'https://caseta.spaceai.latticesystems.dev';
 const DEMO_EMAIL = process.env.SHOTS_EMAIL ?? 'admin@spaceia.com';
 const DEMO_PASSWORD = process.env.SHOTS_PASSWORD ?? 'Admin123!';
 
@@ -49,9 +51,10 @@ async function main() {
   });
 
   // 2. Vistas tablet. Viewport tablet landscape.
+  // Control de acceso = página principal de la app de caseta, no ${BASE}/tablet/access.
   await safe('access', async () => {
     await page.setViewportSize({ width: 1024, height: 768 });
-    await page.goto(`${BASE}/tablet/access`, { waitUntil: 'networkidle', timeout: 45000 });
+    await page.goto(`${CASETA_BASE}/`, { waitUntil: 'networkidle', timeout: 45000 });
     await shot(page, 'access');
   });
   await safe('cart', async () => {
