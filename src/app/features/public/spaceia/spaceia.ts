@@ -9,10 +9,13 @@ import { NgOptimizedImage } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideBatteryCharging,
   lucideBot,
+  lucideCpu,
   lucideDatabase,
   lucideFingerprint,
   lucideMonitor,
+  lucideRadar,
   lucideRoute,
   lucideShieldCheck,
   lucideSmartphone,
@@ -29,6 +32,9 @@ const PRODUCTS = [
     title: 'Campus en la palma del estudiante',
     body: 'Credencial digital, avisos, orientación, servicios y comunicación institucional en una sola experiencia.',
     signal: 'Identidad y comunicación',
+    img: '/mobile/movil-qr.jpeg',
+    fit: 'contain',
+    span: 'lg:col-span-7',
     points: [
       'Identidad universitaria',
       'Servicios para estudiantes',
@@ -42,6 +48,9 @@ const PRODUCTS = [
     title: 'Entradas seguras y medibles',
     body: 'Acceso inteligente con QR e IoT para edificios, laboratorios, estacionamientos y eventos.',
     signal: 'Accesos y trazabilidad',
+    img: '/screenshots/access.png',
+    fit: 'cover',
+    span: 'lg:col-span-5',
     points: ['Reglas por perfil', 'Registro de entradas', 'Operación conectada'],
   },
   {
@@ -51,6 +60,9 @@ const PRODUCTS = [
     title: 'Atención con IA dentro del campus',
     body: 'Asistente físico para resolver dudas, ubicar servicios y reducir filas en puntos de alta demanda.',
     signal: 'Atención autoservicio',
+    img: '/screenshots/side.png',
+    fit: 'cover',
+    span: 'lg:col-span-5',
     points: ['IA conversacional', 'Mapas y orientación', 'Atención autoservicio'],
   },
   {
@@ -60,6 +72,9 @@ const PRODUCTS = [
     title: 'Guía física para espacios complejos',
     body: 'Robot de orientación para visitantes, alumnos y personal en recorridos, admisiones y eventos.',
     signal: 'Orientación presencial',
+    img: '/cart/carrito-completo.jpeg',
+    fit: 'contain',
+    span: 'lg:col-span-7',
     points: ['Navegación autónoma', 'Recorridos guiados', 'Presencia tecnológica visible'],
   },
 ] as const;
@@ -101,6 +116,12 @@ const SHOWCASE = [
   { device: 'device device-iphone-x',                     screen: '/mobile/movil-qr.jpeg',  alt: 'Credencial digital en la app móvil', label: 'App móvil' },
 ] as const;
 
+const CART_SPECS = [
+  { icon: 'lucideRadar', title: 'Sensórica', body: 'Ultrasonido y seguimiento de línea para navegar el entorno del campus.' },
+  { icon: 'lucideCpu', title: 'Cómputo a bordo', body: 'Procesamiento local en el chasis: decide y responde sin depender de la nube.' },
+  { icon: 'lucideBatteryCharging', title: 'Autonomía', body: 'Batería integrada para operación continua durante la jornada.' },
+] as const;
+
 function observe1(el: HTMLElement, cb: () => void): void {
   const obs = new IntersectionObserver(
     ([e]) => { if (e.isIntersecting) { cb(); obs.disconnect(); } },
@@ -123,6 +144,9 @@ function observe1(el: HTMLElement, cb: () => void): void {
       lucideSparkles,
       lucideDatabase,
       lucideWorkflow,
+      lucideRadar,
+      lucideCpu,
+      lucideBatteryCharging,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -172,6 +196,28 @@ function observe1(el: HTMLElement, cb: () => void): void {
     @media (prefers-reduced-motion: reduce) {
       .pulse-node {
         animation: none;
+      }
+    }
+
+    .module-card {
+      opacity: 0;
+      transform: translateY(28px);
+      transition:
+        opacity 700ms cubic-bezier(0.32, 0.72, 0, 1),
+        transform 600ms cubic-bezier(0.32, 0.72, 0, 1),
+        box-shadow 500ms cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .module-card.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .module-card {
+        opacity: 1;
+        transform: none;
+        transition: box-shadow 300ms ease;
       }
     }
 
@@ -363,66 +409,79 @@ function observe1(el: HTMLElement, cb: () => void): void {
         </div>
       </section>
 
-      <section class="mx-auto max-w-7xl px-6 py-20 lg:px-16">
-        <div class="mb-10 max-w-2xl">
-          <p class="text-primary mb-3 text-xs font-semibold tracking-widest uppercase">
+      <section class="mx-auto max-w-7xl px-6 py-24 lg:px-16">
+        <div class="mb-14 max-w-2xl">
+          <span
+            class="border-border text-muted-foreground mb-5 inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium tracking-[0.18em] uppercase"
+          >
             Módulos del ecosistema
-          </p>
-          <h2 class="text-foreground text-3xl font-bold tracking-tight sm:text-4xl">
+          </span>
+          <h2 class="text-foreground text-4xl font-bold tracking-tight sm:text-5xl">
             Cada producto resuelve un momento concreto del campus.
           </h2>
+          <p class="text-muted-foreground mt-5 text-lg leading-relaxed">
+            Cuatro piezas, una sola identidad. Diseñadas para operar juntas — no como apps sueltas.
+          </p>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-4">
-          @for (product of products; track product.id) {
-            <a
-              routerLink="/spaceai"
-              [fragment]="product.id"
-              class="border-border bg-card text-card-foreground hover:border-primary/50 rounded-lg border p-4 transition-colors"
+        <div class="grid gap-5 lg:grid-cols-12">
+          @for (product of products; track product.id; let i = $index) {
+            <article
+              #moduleCard
+              [id]="product.id"
+              class="module-card group border-border bg-card relative flex scroll-mt-28 flex-col overflow-hidden rounded-3xl border p-2 hover:-translate-y-1 hover:shadow-[0_24px_60px_-24px_rgb(37_99_235_/_0.28)]"
+              [class]="product.span"
+              [style.transition-delay]="i * 90 + 'ms'"
             >
-              <ng-icon [name]="product.icon" class="text-primary text-[length:--spacing(5)]" />
-              <span class="mt-3 block text-sm font-semibold">{{ product.eyebrow }}</span>
-              <span class="text-muted-foreground mt-1 block text-xs">{{ product.signal }}</span>
-            </a>
-          }
-        </div>
-      </section>
-
-      <section class="mx-auto flex max-w-7xl flex-col gap-6 px-6 pb-24 lg:px-16">
-        @for (product of products; track product.id; let i = $index) {
-          <article
-            [id]="product.id"
-            class="border-border bg-card grid scroll-mt-28 gap-8 rounded-lg border p-6 md:grid-cols-[0.85fr_1.15fr] md:p-8"
-          >
-            <div class="flex gap-4">
               <div
-                class="bg-primary/10 flex size-12 shrink-0 items-center justify-center rounded-lg"
+                class="ring-border/70 relative aspect-[16/10] w-full overflow-hidden rounded-[1.25rem] ring-1"
+                [class]="product.fit === 'contain'
+                  ? 'bg-gradient-to-b from-muted to-background'
+                  : 'bg-muted'"
               >
-                <ng-icon [name]="product.icon" class="text-primary text-[length:--spacing(6)]" />
+                <img
+                  [ngSrc]="product.img"
+                  [alt]="product.title"
+                  fill
+                  sizes="(min-width: 1024px) 55vw, 100vw"
+                  class="transition-transform duration-700 ease-[cubic-bezier(0.32,0.72,0,1)] group-hover:scale-[1.04]"
+                  [class]="product.fit === 'contain'
+                    ? 'object-contain p-6'
+                    : 'object-cover object-top'"
+                />
+                <div
+                  class="ring-foreground/5 pointer-events-none absolute inset-0 rounded-[1.25rem] ring-1 ring-inset"
+                  aria-hidden="true"
+                ></div>
+                <span
+                  class="bg-background/85 ring-border text-primary absolute top-4 left-4 flex size-10 items-center justify-center rounded-xl ring-1"
+                >
+                  <ng-icon [name]="product.icon" class="text-[length:--spacing(5)]" />
+                </span>
               </div>
-              <div>
-                <p class="text-primary mb-3 text-xs font-semibold tracking-widest uppercase">
+
+              <div class="flex flex-1 flex-col p-6">
+                <p class="text-primary mb-2 text-xs font-semibold tracking-widest uppercase">
                   {{ product.eyebrow }}
                 </p>
-                <h2 class="text-card-foreground text-2xl font-bold tracking-tight">
+                <h3 class="text-card-foreground text-2xl font-bold tracking-tight">
                   {{ product.title }}
-                </h2>
-                <p class="text-muted-foreground mt-4 text-sm leading-relaxed">
+                </h3>
+                <p class="text-muted-foreground mt-3 text-sm leading-relaxed">
                   {{ product.body }}
                 </p>
+                <div class="mt-5 flex flex-wrap gap-x-5 gap-y-2">
+                  @for (point of product.points; track point) {
+                    <span class="text-muted-foreground inline-flex items-center gap-2 text-xs font-medium">
+                      <span class="bg-primary size-1.5 rounded-full" aria-hidden="true"></span>
+                      {{ point }}
+                    </span>
+                  }
+                </div>
               </div>
-            </div>
-            <ul class="grid content-start gap-3 sm:grid-cols-3">
-              @for (point of product.points; track point) {
-                <li
-                  class="border-border bg-background text-foreground rounded-md border p-4 text-sm font-medium"
-                >
-                  {{ point }}
-                </li>
-              }
-            </ul>
-          </article>
-        }
+            </article>
+          }
+        </div>
       </section>
 
       <section class="showcase-sec bg-background mx-auto max-w-7xl px-6 py-20 lg:px-16">
@@ -464,38 +523,75 @@ function observe1(el: HTMLElement, cb: () => void): void {
         </div>
       </section>
 
-      <section class="mx-auto max-w-7xl px-6 py-20 lg:px-16">
-        <div class="mb-10 max-w-2xl">
-          <p class="text-primary mb-3 text-xs font-semibold tracking-widest uppercase">
-            Hardware propio
-          </p>
-          <h2 class="text-foreground text-3xl font-bold tracking-tight sm:text-4xl">
-            El carrito inteligente, en físico.
-          </h2>
-          <p class="text-muted-foreground mt-4 text-base leading-relaxed">
-            Diseño y ensamblaje propios: sensórica, cómputo a bordo y batería en un chasis pensado
-            para el campus.
+      <section class="mx-auto max-w-7xl px-6 py-24 lg:px-16">
+        <div class="mb-14 grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+          <div>
+            <span
+              class="border-border text-muted-foreground mb-5 inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-medium tracking-[0.18em] uppercase"
+            >
+              Hardware propio
+            </span>
+            <h2 class="text-foreground text-4xl font-bold tracking-tight sm:text-5xl">
+              No solo software.<br />Robótica que construimos.
+            </h2>
+          </div>
+          <p class="text-muted-foreground text-lg leading-relaxed">
+            Diseño y ensamblaje propios: un chasis con sensórica, cómputo a bordo y batería,
+            pensado para moverse por el campus y guiar a las personas.
           </p>
         </div>
-        <div class="grid gap-4 sm:grid-cols-2">
-          <figure class="border-border bg-muted relative aspect-[4/5] overflow-hidden rounded-lg border">
-            <img
-              ngSrc="/cart/carrito-completo.jpeg"
-              alt="Carrito inteligente SpaceIA — unidad completa con mástil sensor"
-              fill
-              sizes="(min-width: 640px) 50vw, 100vw"
-              class="object-contain"
-            />
+
+        <div class="grid gap-5 lg:grid-cols-3">
+          <figure
+            class="border-border bg-card relative overflow-hidden rounded-3xl border p-2 lg:row-span-2"
+          >
+            <div
+              class="ring-border/70 from-muted to-background relative aspect-[3/4] overflow-hidden rounded-[1.25rem] bg-gradient-to-b ring-1 lg:aspect-auto lg:h-full"
+            >
+              <img
+                ngSrc="/cart/carrito-completo.jpeg"
+                alt="Carrito inteligente SpaceIA — unidad completa con mástil sensor"
+                fill
+                sizes="(min-width: 1024px) 33vw, 100vw"
+                class="object-contain p-4"
+              />
+            </div>
+            <figcaption
+              class="text-muted-foreground absolute bottom-5 left-5 rounded-full bg-background/85 ring-1 ring-border px-3 py-1 text-xs font-medium"
+            >
+              Unidad completa · mástil sensor
+            </figcaption>
           </figure>
-          <figure class="border-border bg-muted relative aspect-[4/5] overflow-hidden rounded-lg border">
-            <img
-              ngSrc="/cart/carrito-parteabajo.jpeg"
-              alt="Carrito inteligente SpaceIA — base motriz y sensórica"
-              fill
-              sizes="(min-width: 640px) 50vw, 100vw"
-              class="object-contain"
-            />
+
+          <figure
+            class="border-border bg-card relative overflow-hidden rounded-3xl border p-2 lg:col-span-2"
+          >
+            <div
+              class="ring-border/70 bg-muted relative aspect-[16/9] overflow-hidden rounded-[1.25rem] ring-1"
+            >
+              <img
+                ngSrc="/cart/carrito-parteabajo.jpeg"
+                alt="Carrito inteligente SpaceIA — base motriz y sensórica"
+                fill
+                sizes="(min-width: 1024px) 66vw, 100vw"
+                class="object-cover"
+              />
+            </div>
           </figure>
+
+          <div class="grid gap-5 sm:grid-cols-3 lg:col-span-2">
+            @for (spec of cartSpecs; track spec.title) {
+              <div class="border-border bg-card flex flex-col gap-3 rounded-2xl border p-5">
+                <span
+                  class="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-xl"
+                >
+                  <ng-icon [name]="spec.icon" class="text-[length:--spacing(5)]" />
+                </span>
+                <h3 class="text-card-foreground text-sm font-semibold">{{ spec.title }}</h3>
+                <p class="text-muted-foreground text-xs leading-relaxed">{{ spec.body }}</p>
+              </div>
+            }
+          </div>
         </div>
       </section>
 
@@ -539,14 +635,20 @@ export class Spaceia {
   protected readonly flow = FLOW;
   protected readonly layers = LAYERS;
   protected readonly showcase = SHOWCASE;
+  protected readonly cartSpecs = CART_SPECS;
 
   private readonly showcaseItems = viewChildren<ElementRef>('showcaseItem');
+  private readonly moduleCards = viewChildren<ElementRef>('moduleCard');
 
   constructor() {
     afterNextRender(() => {
       this.showcaseItems().forEach((ref, i) => {
         const el = ref.nativeElement as HTMLElement;
         observe1(el, () => setTimeout(() => el.classList.add('visible'), i * 120));
+      });
+      this.moduleCards().forEach((ref, i) => {
+        const el = ref.nativeElement as HTMLElement;
+        observe1(el, () => setTimeout(() => el.classList.add('visible'), (i % 2) * 90));
       });
     });
   }
